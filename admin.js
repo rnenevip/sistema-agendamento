@@ -1,15 +1,19 @@
 const API_URL = 'https://sistema-agendamento-8tlb.onrender.com';
 
 const filtroData = document.getElementById('filtroData');
+const dataBloqueio = document.getElementById('dataBloqueio');
+const manualData = document.getElementById('manualData');
 const listaAgendamentos = document.getElementById('listaAgendamentos');
-const btnBloquearManual = document.getElementById('btnBloquearManual');
-const horaBloqueio = document.getElementById('horaBloqueio');
 
-// Define a data de hoje como padrão no filtro
-filtroData.value = new Date().toISOString().split('T')[0];
+const hoje = new Date().toISOString().split('T')[0];
+filtroData.value = hoje;
+dataBloqueio.value = hoje;
+manualData.value = hoje;
 
 filtroData.addEventListener('change', carregarAgendamentos);
-btnBloquearManual.addEventListener('click', bloquearHorario);
+document.getElementById('btnBloquearIntervalo').addEventListener('click', bloquearIntervalo);
+document.getElementById('btnBloquearDiaTodo').addEventListener('click', bloquearDiaTodo);
+document.getElementById('btnAgendarManual').addEventListener('click', agendarManual);
 
 async function carregarAgendamentos() {
   const data = filtroData.value;
@@ -28,12 +32,14 @@ async function carregarAgendamentos() {
 
     listaAgendamentos.innerHTML = '';
     agendamentos.forEach(ag => {
-      const hora = new Date(ag.inicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const inicio = new Date(ag.inicio);
+      const horaStr = `${String(inicio.getHours()).padStart(2, '0')}:${String(inicio.getMinutes()).padStart(2, '0')}`;
+
       const div = document.createElement('div');
-      div.className = 'card-agendamento';
+      div.className = ag.cliente.includes('BLOQUEADO') ? 'card-agendamento card-bloqueado' : 'card-agendamento';
       div.innerHTML = `
         <div>
-          <strong>${hora}</strong> - ${ag.cliente} (${ag.servico})<br>
+          <strong>${horaStr}</strong> - ${ag.cliente} (${ag.servico})<br>
           <small>Contato: ${ag.telefoneCliente || 'N/A'} | Obs: ${ag.observacao || 'Nenhuma'}</small>
         </div>
       `;
@@ -44,38 +50,82 @@ async function carregarAgendamentos() {
   }
 }
 
-async function bloquearHorario() {
-  const data = filtroData.value;
-  const hora = horaBloqueio.value;
-
-  if (!data) return alert('Selecione uma data!');
-
-  const dataHora = `${data}T${hora}:00`;
-
+async function enviarAgendamento(payload) {
   try {
     const res = await fetch(`${API_URL}/agendar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cliente: 'BLOQUEADO (PAUSA/FOLGA)',
-        telefone: '00000000000',
-        servico: 'Corte',
-        observacao: 'Horário bloqueado manualmente pelo painel',
-        dataHora: dataHora
-      })
+      body: JSON.stringify(payload)
     });
-
-    if (res.ok) {
-      alert('Horário bloqueado com sucesso!');
-      carregarAgendamentos();
-    } else {
-      const erro = await res.json();
-      alert(erro.message);
-    }
+    return res.ok;
   } catch (e) {
-    alert('Erro ao bloquear horário.');
+    return false;
   }
 }
 
-// Carrega os agendamentos ao abrir a tela
+async function bloquearIntervalo() {
+  const data = dataBloqueio.value;
+  const hInicio = parseInt(document.getElementById('horaInicioBloqueio').value.split(':')[0]);
+  const hFim = parseInt(document.getElementById('horaFimBloqueio').value.split(':')[0]);
+
+  if (hInicio >= hFim) return alert('Horário final deve ser maior que o horário de início.');
+
+  for (let h = hInicio; h < hFim; h++) {
+    const horaFormatted = String(h).padStart(2, '0') + ':00';
+    await enviarAgendamento({
+      cliente: 'BLOQUEADO (PAUSA/FOLGA)',
+      telefone: '00000000000',
+      servico: 'Corte',
+      observacao: 'Bloqueio manual',
+      dataHora: `${data}T${horaFormatted}:00`
+    });
+  }
+
+  alert('Intervalo bloqueado com sucesso!');
+  carregarAgendamentos();
+}
+
+async function bloquearDiaTodo() {
+  const data = dataBloqueio.value;
+  const horas = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+
+  for (const hora of horas) {
+    await enviarAgendamento({
+      cliente: 'BLOQUEADO (DIA TODO)',
+      telefone: '00000000000',
+      servico: 'Corte',
+      observacao: 'Dia bloqueado',
+      dataHora: `${data}T${hora}:00`
+    });
+  }
+
+  alert('Dia todo bloqueado com sucesso!');
+  carregarAgendamentos();
+}
+
+async function agendarManual() {
+  const cliente = document.getElementById('manualCliente').value;
+  const telefone = document.getElementById('manualTelefone').value;
+  const servico = document.getElementById('manualServico').value;
+  const data = manualData.value;
+  const hora = document.getElementById('manualHora').value;
+
+  if (!cliente) return alert('Digite o nome do cliente!');
+
+  const sucesso = await enviarAgendamento({
+    cliente,
+    telefone,
+    servico,
+    observacao: 'Agendado manualmente no painel',
+    dataHora: `${data}T${hora}:00`
+  });
+
+  if (sucesso) {
+    alert('Cliente agendado com sucesso!');
+    carregarAgendamentos();
+  } else {
+    alert('Erro ou horário com conflito!');
+  }
+}
+
 carregarAgendamentos();
