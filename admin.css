@@ -1,5 +1,9 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: Arial, sans-serif;
   background-color: #f4f7f6;
   color: #333;
   margin: 0;
@@ -7,12 +11,12 @@ body {
 }
 
 .admin-container {
-  max-width: 650px;
-  margin: 30px auto;
+  max-width: 600px;
+  margin: 0 auto;
   background: #ffffff;
   padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 h2 {
@@ -31,58 +35,72 @@ h3 {
 label {
   display: block;
   font-weight: bold;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
-.form-group {
+.field-box {
+  width: 100%;
   margin-bottom: 15px;
 }
 
 input[type="text"],
 input[type="date"],
 select {
-  width: 100%;
+  display: block;
+  width: 100% !important;
   padding: 10px;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 5px;
   font-size: 14px;
-  box-sizing: border-box;
-  display: block;
 }
 
-.bloqueio-form {
+.row-flex {
   display: flex;
   gap: 15px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
-.bloqueio-form div {
+.row-flex div {
   flex: 1;
 }
 
-.btn-bloquear {
-  background-color: #e74c3c;
+.btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
   color: white;
   border: none;
-  padding: 12px;
-  border-radius: 6px;
+  border-radius: 5px;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 15px;
   cursor: pointer;
-  transition: background 0.2s;
+  margin-top: 10px;
 }
 
-.btn-bloquear:hover {
-  background-color: #c0392b;
+.btn-red {
+  background-color: #e74c3c;
+}
+
+.btn-purple {
+  background-color: #8e44ad;
+}
+
+.btn-green {
+  background-color: #27ae60;
+}
+
+.divisor {
+  margin: 30px 0;
+  border: 0;
+  border-top: 1px solid #eee;
 }
 
 .card-agendamento {
   background: #f8f9fa;
   border-left: 4px solid #25D366;
-  padding: 12px 15px;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 5px;
   margin-bottom: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
 }
 
 .card-bloqueado {

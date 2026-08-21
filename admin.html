@@ -10,7 +10,7 @@
   <div class="admin-container">
     <h2>Painel da Profissional 💇‍♀️</h2>
     
-    <div class="form-group">
+    <div class="field-box">
       <label for="filtroData">Selecione a Data de Consulta:</label>
       <input type="date" id="filtroData">
     </div>
@@ -18,15 +18,15 @@
     <h3>Agendamentos do Dia</h3>
     <div id="listaAgendamentos">Carregando...</div>
 
-    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+    <hr class="divisor">
 
     <h3>1. Bloquear Horários (Pausas / Folga)</h3>
-    <div class="form-group">
+    <div class="field-box">
       <label>Data do Bloqueio:</label>
       <input type="date" id="dataBloqueio">
     </div>
 
-    <div class="bloqueio-form">
+    <div class="row-flex">
       <div>
         <label>De:</label>
         <select id="horaInicioBloqueio">
@@ -57,23 +57,25 @@
         </select>
       </div>
     </div>
-    <button id="btnBloquearIntervalo" class="btn-bloquear" style="width: 100%; margin-top: 10px;">Bloquear Horário</button>
-    <button id="btnBloquearDiaTodo" class="btn-bloquear" style="width: 100%; margin-top: 10px; background-color: #8e44ad;">🚫 Bloquear Dia Todo</button>
 
-    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+    <button id="btnBloquearIntervalo" class="btn btn-red">Bloquear Horário</button>
+    <button id="btnBloquearDiaTodo" class="btn btn-purple">🚫 Bloquear Dia Todo</button>
+
+    <hr class="divisor">
 
     <h3>2. Agendamento Manual / Futuro</h3>
-    <div class="form-group">
+    
+    <div class="field-box">
       <label>Nome do Cliente:</label>
       <input type="text" id="manualCliente" placeholder="Digite o nome completo">
     </div>
 
-    <div class="form-group">
+    <div class="field-box">
       <label>Telefone / WhatsApp:</label>
       <input type="text" id="manualTelefone" placeholder="(00) 00000-0000">
     </div>
 
-    <div class="form-group">
+    <div class="field-box">
       <label>Serviço:</label>
       <select id="manualServico">
         <option value="Corte">Corte</option>
@@ -83,12 +85,12 @@
       </select>
     </div>
 
-    <div class="form-group">
+    <div class="field-box">
       <label>Data:</label>
       <input type="date" id="manualData">
     </div>
 
-    <div class="bloqueio-form">
+    <div class="row-flex">
       <div>
         <label>De:</label>
         <select id="manualHoraInicio">
@@ -120,7 +122,7 @@
       </div>
     </div>
 
-    <button id="btnAgendarManual" style="width: 100%; padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; margin-top: 15px; cursor: pointer;">📅 Agendar Cliente</button>
+    <button id="btnAgendarManual" class="btn btn-green">📅 Agendar Cliente</button>
   </div>
 
   <script src="admin.js"></script>
