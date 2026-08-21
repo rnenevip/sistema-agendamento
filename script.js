@@ -25,11 +25,13 @@ async function carregarHorarios() {
   const servico = selectServico.value;
   const data = inputData.value;
 
-  mensagemDiv.innerHTML = '';
-  mensagemDiv.className = 'hidden';
+  if (mensagemDiv) {
+    mensagemDiv.innerHTML = '';
+    mensagemDiv.className = 'hidden';
+  }
 
   if (!servico || !data) {
-    secaoHorarios.classList.add('hidden');
+    if (secaoHorarios) secaoHorarios.classList.add('hidden');
     return;
   }
 
@@ -44,42 +46,33 @@ async function carregarHorarios() {
       console.warn("Aguardando resposta da API no Render...");
     }
 
-    const duracoes = {
-      'Corte': 45,
-      'Escova': 45,
-      'Coloração': 120,
-      'Mechas': 240
-    };
-    
-    const servicoNome = servico.split(' (')[0].trim();
-    const duracaoNovo = duracoes[servicoNome] || 60;
+    // Identificação direta e segura do tempo de duração
+    let duracaoNovo = 60;
+    if (servico.includes('Corte') || servico.includes('Escova')) duracaoNovo = 45;
+    else if (servico.includes('Coloração')) duracaoNovo = 120;
+    else if (servico.includes('Mechas')) duracaoNovo = 240;
 
     gridHorarios.innerHTML = '';
     secaoHorarios.classList.remove('hidden');
-    btnConfirmar.disabled = true;
-    horarioSelecionadoInput.value = '';
+    if (btnConfirmar) btnConfirmar.disabled = true;
+    if (horarioSelecionadoInput) horarioSelecionadoInput.value = '';
 
     HORARIOS_DIA.forEach(hora => {
       const [h, m] = hora.split(':').map(Number);
       const inicioNovoMin = h * 60 + m;
       const fimNovoMin = inicioNovoMin + duracaoNovo;
 
-      // Validação ultra-segura para extrair minutos ocupados sem quebrar o JS
+      // Verificação simples e sem quebra de código
       const temConflito = Array.isArray(ocupados) && ocupados.some(ag => {
-        try {
-          const strInicio = ag.inicio || ag.dataHora || ag;
-          const strFim = ag.fim || ag.dataHoraFim;
+        if (!ag || !ag.inicio) return false;
+        
+        const dInicio = new Date(ag.inicio);
+        const dFim = ag.fim ? new Date(ag.fim) : new Date(dInicio.getTime() + 60 * 60 * 1000);
 
-          const dInicio = new Date(strInicio);
-          const dFim = strFim ? new Date(strFim) : new Date(dInicio.getTime() + 60 * 60 * 1000);
+        const inicioAgMin = dInicio.getHours() * 60 + dInicio.getMinutes();
+        const fimAgMin = dFim.getHours() * 60 + dFim.getMinutes();
 
-          const inicioAgMin = dInicio.getHours() * 60 + dInicio.getMinutes();
-          const fimAgMin = dFim.getHours() * 60 + dFim.getMinutes();
-
-          return (inicioNovoMin < fimAgMin) && (fimNovoMin > inicioAgMin);
-        } catch (err) {
-          return false;
-        }
+        return (inicioNovoMin < fimAgMin) && (fimNovoMin > inicioAgMin);
       });
 
       const btn = document.createElement('button');
@@ -92,8 +85,10 @@ async function carregarHorarios() {
         btn.classList.add('indisponivel');
       } else {
         btn.onclick = () => {
-          mensagemDiv.innerHTML = '';
-          mensagemDiv.className = 'hidden';
+          if (mensagemDiv) {
+            mensagemDiv.innerHTML = '';
+            mensagemDiv.className = 'hidden';
+          }
 
           document.querySelectorAll('.btn-horario').forEach(b => {
             if (!b.disabled) {
@@ -102,8 +97,8 @@ async function carregarHorarios() {
           });
           
           btn.classList.add('selecionado');
-          horarioSelecionadoInput.value = `${data}T${hora}:00`;
-          btnConfirmar.disabled = false;
+          if (horarioSelecionadoInput) horarioSelecionadoInput.value = `${data}T${hora}:00`;
+          if (btnConfirmar) btnConfirmar.disabled = false;
         };
       }
 
@@ -115,77 +110,80 @@ async function carregarHorarios() {
   }
 }
 
-document.getElementById('formAgendamento').addEventListener('submit', async (e) => {
-  e.preventDefault();
+const form = document.getElementById('formAgendamento');
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  mensagemDiv.innerHTML = '';
-  mensagemDiv.className = 'hidden';
+    mensagemDiv.innerHTML = '';
+    mensagemDiv.className = 'hidden';
 
-  const cliente = document.getElementById('cliente').value;
-  const telefone = document.getElementById('telefone').value;
-  const servico = selectServico.value;
-  const observacao = document.getElementById('observacao').value;
-  const dataHora = horarioSelecionadoInput.value;
+    const cliente = document.getElementById('cliente').value;
+    const telefone = document.getElementById('telefone').value;
+    const servico = selectServico.value;
+    const observacao = document.getElementById('observacao').value;
+    const dataHora = horarioSelecionadoInput.value;
 
-  if (!dataHora) {
-    mensagemDiv.className = 'erro';
-    mensagemDiv.classList.remove('hidden');
-    mensagemDiv.textContent = 'Este horário não está disponível.';
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_URL}/agendar`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cliente, telefone, servico, observacao, dataHora })
-    });
-
-    const dataRes = await response.json();
-
-    if (response.ok) {
-      mensagemDiv.className = 'sucesso';
-      mensagemDiv.classList.remove('hidden');
-
-      const [dataPart, horaPart] = dataHora.split('T');
-      const [ano, mes, dia] = dataPart.split('-');
-      const dataFormatada = `${dia}/${mes}/${ano}`;
-      const horaFormatada = horaPart.substring(0, 5);
-
-      const textoMensagem = `Olá! Fiz um agendamento pelo site:\n\n` +
-        `👤 *Cliente:* ${cliente}\n` +
-        `📱 *Telefone:* ${telefone}\n` +
-        `💇‍♀️ *Serviço:* ${servico}\n` +
-        `📅 *Data:* ${dataFormatada}\n` +
-        `⏰ *Horário:* ${horaFormatada}\n` +
-        (observacao ? `📝 *Obs:* ${observacao}` : '');
-
-      const urlWhatsapp = `https://wa.me/${TELEFONE_SALAO}?text=${encodeURIComponent(textoMensagem)}`;
-
-      mensagemDiv.innerHTML = `
-        <p><strong>${dataRes.message || 'Agendamento criado com sucesso!'}</strong></p>
-        <br>
-        <button type="button" id="btnNotificarWhatsapp" style="display:inline-block; padding:12px 18px; background:#25D366; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:15px; width:100%;">
-           📲 Enviar Notificação no WhatsApp
-        </button>
-      `;
-
-      document.getElementById('btnNotificarWhatsapp').onclick = () => {
-        window.open(urlWhatsapp, '_blank');
-      };
-
-      document.getElementById('formAgendamento').reset();
-      secaoHorarios.classList.add('hidden');
-      
-    } else {
+    if (!dataHora) {
       mensagemDiv.className = 'erro';
       mensagemDiv.classList.remove('hidden');
-      mensagemDiv.textContent = dataRes.message || 'Este horário não está disponível.';
-      carregarHorarios();
+      mensagemDiv.textContent = 'Este horário não está disponível.';
+      return;
     }
-  } catch (error) {
-    mensagemDiv.className = 'erro';
-    mensagemDiv.classList.remove('hidden');
-    mensagemDiv.textContent = 'Erro ao conectar com o servidor em nuvem.';
-  }
-});
+
+    try {
+      const response = await fetch(`${API_URL}/agendar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cliente, telefone, servico, observacao, dataHora })
+      });
+
+      const dataRes = await response.json();
+
+      if (response.ok) {
+        mensagemDiv.className = 'sucesso';
+        mensagemDiv.classList.remove('hidden');
+
+        const [dataPart, horaPart] = dataHora.split('T');
+        const [ano, mes, dia] = dataPart.split('-');
+        const dataFormatada = `${dia}/${mes}/${ano}`;
+        const horaFormatada = horaPart.substring(0, 5);
+
+        const textoMensagem = `Olá! Fiz um agendamento pelo site:\n\n` +
+          `👤 *Cliente:* ${cliente}\n` +
+          `📱 *Telefone:* ${telefone}\n` +
+          `💇‍♀️ *Serviço:* ${servico}\n` +
+          `📅 *Data:* ${dataFormatada}\n` +
+          `⏰ *Horário:* ${horaFormatada}\n` +
+          (observacao ? `📝 *Obs:* ${observacao}` : '');
+
+        const urlWhatsapp = `https://wa.me/${TELEFONE_SALAO}?text=${encodeURIComponent(textoMensagem)}`;
+
+        mensagemDiv.innerHTML = `
+          <p><strong>${dataRes.message || 'Agendamento criado com sucesso!'}</strong></p>
+          <br>
+          <button type="button" id="btnNotificarWhatsapp" style="display:inline-block; padding:12px 18px; background:#25D366; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:15px; width:100%;">
+             📲 Enviar Notificação no WhatsApp
+          </button>
+        `;
+
+        document.getElementById('btnNotificarWhatsapp').onclick = () => {
+          window.open(urlWhatsapp, '_blank');
+        };
+
+        form.reset();
+        secaoHorarios.classList.add('hidden');
+        
+      } else {
+        mensagemDiv.className = 'erro';
+        mensagemDiv.classList.remove('hidden');
+        mensagemDiv.textContent = dataRes.message || 'Este horário não está disponível.';
+        carregarHorarios();
+      }
+    } catch (error) {
+      mensagemDiv.className = 'erro';
+      mensagemDiv.classList.remove('hidden');
+      mensagemDiv.textContent = 'Erro ao conectar com o servidor em nuvem.';
+    }
+  });
+}
