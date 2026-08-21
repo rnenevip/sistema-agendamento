@@ -4,25 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel do Salão - Administração</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    .admin-container { max-width: 800px; margin: 20px auto; padding: 20px; }
-    .card-agendamento { border: 1px solid #ccc; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .btn-bloquear { background-color: #ff4d4d; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
-    .status-bloqueado { color: #d9534f; font-weight: bold; }
-  </style>
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
   <div class="admin-container">
     <h2>Painel da Profissional 💇‍♀️</h2>
     
-    <label for="filtroData"><strong>Selecione a Data:</strong></label>
+    <label for="filtroData">Selecione a Data:</label>
     <input type="date" id="filtroData">
 
-    <hr style="margin: 20px 0;">
+    <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
 
     <h3>Bloquear Horário Manualmente</h3>
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+    <div class="bloqueio-form">
       <select id="horaBloqueio">
         <option value="08:00">08:00</option>
         <option value="09:00">09:00</option>
@@ -34,7 +28,7 @@
         <option value="16:00">16:00</option>
         <option value="17:00">17:00</option>
       </select>
-      <button id="btnBloquearManual" class="btn-bloquear">Bloquear Horário</button>
+      <button id="btnBloquearManual" class="btn-bloquear">Bloquear</button>
     </div>
 
     <h3>Agendamentos do Dia</h3>
