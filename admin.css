@@ -25,7 +25,7 @@ h2 {
 h3 {
   color: #34495e;
   margin-top: 20px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 label {
@@ -34,7 +34,10 @@ label {
   margin-bottom: 6px;
 }
 
-/* Ajustado para 100% para que Nome, Telefone, Selects e Inputs fiquem grandes e alinhados */
+.form-group {
+  margin-bottom: 15px;
+}
+
 input[type="text"],
 input[type="date"],
 select {
@@ -44,13 +47,12 @@ select {
   border-radius: 6px;
   font-size: 14px;
   box-sizing: border-box;
-  margin-bottom: 15px;
+  display: block;
 }
 
 .bloqueio-form {
   display: flex;
-  gap: 10px;
-  align-items: center;
+  gap: 15px;
   margin-bottom: 10px;
 }
 
@@ -58,17 +60,14 @@ select {
   flex: 1;
 }
 
-.bloqueio-form select {
-  margin-bottom: 0;
-}
-
 .btn-bloquear {
   background-color: #e74c3c;
   color: white;
   border: none;
-  padding: 11px 16px;
+  padding: 12px;
   border-radius: 6px;
   font-weight: bold;
+  font-size: 14px;
   cursor: pointer;
   transition: background 0.2s;
 }

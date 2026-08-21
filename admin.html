@@ -1,14 +1,92 @@
-<h3>2. Agendamento Manual / Futuro</h3>
-    <input type="text" id="manualCliente" placeholder="Nome do Cliente">
-    <input type="text" id="manualTelefone" placeholder="Telefone / WhatsApp">
-    <select id="manualServico">
-      <option value="Corte">Corte</option>
-      <option value="Escova">Escova</option>
-      <option value="Coloração">Coloração</option>
-      <option value="Mechas">Mechas</option>
-    </select>
-    <label>Data:</label>
-    <input type="date" id="manualData">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Salão - Administração</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div class="admin-container">
+    <h2>Painel da Profissional 💇‍♀️</h2>
+    
+    <div class="form-group">
+      <label for="filtroData">Selecione a Data de Consulta:</label>
+      <input type="date" id="filtroData">
+    </div>
+
+    <h3>Agendamentos do Dia</h3>
+    <div id="listaAgendamentos">Carregando...</div>
+
+    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+
+    <h3>1. Bloquear Horários (Pausas / Folga)</h3>
+    <div class="form-group">
+      <label>Data do Bloqueio:</label>
+      <input type="date" id="dataBloqueio">
+    </div>
+
+    <div class="bloqueio-form">
+      <div>
+        <label>De:</label>
+        <select id="horaInicioBloqueio">
+          <option value="08:00">08:00</option>
+          <option value="09:00">09:00</option>
+          <option value="10:00">10:00</option>
+          <option value="11:00">11:00</option>
+          <option value="13:00">13:00</option>
+          <option value="14:00">14:00</option>
+          <option value="15:00">15:00</option>
+          <option value="16:00">16:00</option>
+          <option value="17:00">17:00</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Até:</label>
+        <select id="horaFimBloqueio">
+          <option value="09:00">09:00</option>
+          <option value="10:00">10:00</option>
+          <option value="11:00">11:00</option>
+          <option value="12:00">12:00</option>
+          <option value="14:00">14:00</option>
+          <option value="15:00">15:00</option>
+          <option value="16:00">16:00</option>
+          <option value="17:00">17:00</option>
+          <option value="18:00">18:00</option>
+        </select>
+      </div>
+    </div>
+    <button id="btnBloquearIntervalo" class="btn-bloquear" style="width: 100%; margin-top: 10px;">Bloquear Horário</button>
+    <button id="btnBloquearDiaTodo" class="btn-bloquear" style="width: 100%; margin-top: 10px; background-color: #8e44ad;">🚫 Bloquear Dia Todo</button>
+
+    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+
+    <h3>2. Agendamento Manual / Futuro</h3>
+    <div class="form-group">
+      <label>Nome do Cliente:</label>
+      <input type="text" id="manualCliente" placeholder="Digite o nome completo">
+    </div>
+
+    <div class="form-group">
+      <label>Telefone / WhatsApp:</label>
+      <input type="text" id="manualTelefone" placeholder="(00) 00000-0000">
+    </div>
+
+    <div class="form-group">
+      <label>Serviço:</label>
+      <select id="manualServico">
+        <option value="Corte">Corte</option>
+        <option value="Escova">Escova</option>
+        <option value="Coloração">Coloração</option>
+        <option value="Mechas">Mechas</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Data:</label>
+      <input type="date" id="manualData">
+    </div>
 
     <div class="bloqueio-form">
       <div>
@@ -41,4 +119,10 @@
         </select>
       </div>
     </div>
-    <button id="btnAgendarManual" style="width: 100%; padding: 10px; background-color: #27ae60; color: white; border: none; border-radius: 6px; font-weight: bold; margin-top: 15px; cursor: pointer;">📅 Agendar Cliente</button>
+
+    <button id="btnAgendarManual" style="width: 100%; padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; margin-top: 15px; cursor: pointer;">📅 Agendar Cliente</button>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
