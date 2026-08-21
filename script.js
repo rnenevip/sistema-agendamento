@@ -25,6 +25,10 @@ async function carregarHorarios() {
   const servico = selectServico.value;
   const data = inputData.value;
 
+  // Limpa mensagens anteriores
+  mensagemDiv.innerHTML = '';
+  mensagemDiv.className = 'hidden';
+
   if (!servico || !data) {
     secaoHorarios.classList.add('hidden');
     return;
@@ -41,13 +45,17 @@ async function carregarHorarios() {
       console.warn("Aguardando resposta da API no Render...");
     }
 
+    // Duração dos serviços em minutos
     const duracoes = {
       'Corte': 45,
       'Escova': 45,
       'Coloração': 120,
       'Mechas': 240
     };
-    const duracaoNovo = duracoes[servico] || 60;
+    
+    // Pega o nome limpo do serviço (ex: "Coloração (2h)" -> "Coloração")
+    const servicoNome = servico.split(' (')[0].trim();
+    const duracaoNovo = duracoes[servicoNome] || 60;
 
     gridHorarios.innerHTML = '';
     secaoHorarios.classList.remove('hidden');
@@ -55,16 +63,18 @@ async function carregarHorarios() {
     horarioSelecionadoInput.value = '';
 
     HORARIOS_DIA.forEach(hora => {
-      const [ano, mes, dia] = data.split('-');
-      const [horaNum, minNum] = hora.split(':');
+      // Converte data/hora local de forma precisa
+      const [ano, mes, dia] = data.split('-').map(Number);
+      const [horaNum, minNum] = hora.split(':').map(Number);
       
-      const inicioNovo = new Date(ano, mes - 1, dia, horaNum, minNum);
-      const fimNovo = new Date(inicioNovo.getTime() + duracaoNovo * 60000);
+      const inicioNovo = new Date(ano, mes - 1, dia, horaNum, minNum).getTime();
+      const fimNovo = inicioNovo + (duracaoNovo * 60000);
 
+      // Verifica se há sobreposição com algum agendamento do banco de dados
       const temConflito = ocupados.some(ag => {
-        const inicioAg = new Date(ag.inicio);
-        const fimAg = new Date(ag.fim);
-        return inicioNovo < fimAg && fimNovo > inicioAg;
+        const inicioAg = new Date(ag.inicio).getTime();
+        const fimAg = new Date(ag.fim).getTime();
+        return (inicioNovo < fimAg) && (fimNovo > inicioAg);
       });
 
       const btn = document.createElement('button');
@@ -73,9 +83,10 @@ async function carregarHorarios() {
       btn.textContent = hora;
 
       if (temConflito) {
-        // Estiliza em vermelho quando indisponível
-        btn.style.backgroundColor = '#ffe6e6';
-        btn.style.color = '#d9534f';
+        // Fica vermelho e bloqueado de cara
+        btn.classList.add('indisponivel');
+        btn.style.backgroundColor = '#f8d7da';
+        btn.style.color = '#721c24';
         btn.style.borderColor = '#f5c6cb';
         btn.style.cursor = 'not-allowed';
         
@@ -86,11 +97,16 @@ async function carregarHorarios() {
         };
       } else {
         btn.onclick = () => {
-          // Limpa mensagem de erro caso estivesse exibida
+          // Limpa qualquer mensagem ao escolher um horário válido
           mensagemDiv.innerHTML = '';
           mensagemDiv.className = 'hidden';
 
-          document.querySelectorAll('.btn-horario').forEach(b => b.classList.remove('selecionado'));
+          document.querySelectorAll('.btn-horario').forEach(b => {
+            if (!b.classList.contains('indisponivel')) {
+              b.classList.remove('selecionado');
+            }
+          });
+          
           btn.classList.add('selecionado');
           horarioSelecionadoInput.value = `${data}T${hora}:00`;
           btnConfirmar.disabled = false;
@@ -108,7 +124,6 @@ async function carregarHorarios() {
 document.getElementById('formAgendamento').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // Esconde e limpa a div de mensagem antes de enviar
   mensagemDiv.innerHTML = '';
   mensagemDiv.className = 'hidden';
 
@@ -172,6 +187,8 @@ document.getElementById('formAgendamento').addEventListener('submit', async (e) 
       mensagemDiv.className = 'erro';
       mensagemDiv.classList.remove('hidden');
       mensagemDiv.textContent = dataRes.message || 'Este horário não está disponível.';
+      // Recarrega a lista para pintar de vermelho o horário conflitante
+      carregarHorarios();
     }
   } catch (error) {
     mensagemDiv.className = 'erro';
