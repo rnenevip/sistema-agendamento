@@ -1,9 +1,9 @@
-const API_URL = 'https://sistema-agendamento-backend.onrender.com'; // Coloque aqui a URL real da sua API no Render
+// ATENÇÃO: Verifique se este é o link exato do seu serviço Web no Render
+const API_URL = 'https://sistema-agendamento-backend.onrender.com'; 
 
 const filtroData = document.getElementById('filtroData');
 const listaAgendamentos = document.getElementById('listaAgendamentos');
 
-// 1. Define a data atual como padrão no input no formato YYYY-MM-DD
 function setHoje() {
   const hoje = new Date();
   const ano = hoje.getFullYear();
@@ -16,7 +16,6 @@ function setHoje() {
   }
 }
 
-// 2. Busca agendamentos do backend
 async function carregarAgendamentos() {
   setHoje();
   const dataSelecionada = filtroData.value;
@@ -26,15 +25,23 @@ async function carregarAgendamentos() {
     return;
   }
 
-  listaAgendamentos.innerHTML = 'Carregando...';
+  listaAgendamentos.innerHTML = '<p>Carregando... (O servidor gratuito pode levar até 50s para ligar)</p>';
 
   try {
-    const res = await fetch(`${API_URL}/agendamentos/ocupados?data=${dataSelecionada}`);
-    if (!res.ok) throw new Error('Erro na requisição');
+    const res = await fetch(`${API_URL}/agendamentos/ocupados?data=${dataSelecionada}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error(`Erro na API: ${res.status}`);
+    }
     
     const agendamentos = await res.json();
 
-    if (!agendamentos || agendamentos.length === 0) {
+    if (!Array.isArray(agendamentos) || agendamentos.length === 0) {
       listaAgendamentos.innerHTML = '<p>Nenhum agendamento ou bloqueio nesta data.</p>';
       return;
     }
@@ -52,15 +59,13 @@ async function carregarAgendamentos() {
     }).join('');
 
   } catch (err) {
-    console.error(err);
-    listaAgendamentos.innerHTML = '<p style="color:red;">Erro ao carregar dados do servidor.</p>';
+    console.error('Erro ao buscar agendamentos:', err);
+    listaAgendamentos.innerHTML = '<p style="color:red; font-weight:bold;">Erro ao conectar com o servidor. Verifique a URL do Render no admin.js ou se o Render está ativo.</p>';
   }
 }
 
-// Escuta mudanças no campo de data
 if (filtroData) {
   filtroData.addEventListener('change', carregarAgendamentos);
 }
 
-// Carrega os dados assim que a página abre
 document.addEventListener('DOMContentLoaded', carregarAgendamentos);
