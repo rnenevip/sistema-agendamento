@@ -46,10 +46,17 @@ async function carregarHorarios() {
       console.warn("Aguardando resposta da API no Render...");
     }
 
+    // Identificação insensível a maiúsculas/minúsculas
+    const servicoLower = servico.toLowerCase();
     let duracaoNovo = 60;
-    if (servico.includes('Corte') || servico.includes('Escova')) duracaoNovo = 45;
-    else if (servico.includes('Coloração')) duracaoNovo = 120;
-    else if (servico.includes('Mechas')) duracaoNovo = 240;
+
+    if (servicoLower.includes('mecha')) {
+      duracaoNovo = 240; // 4 horas
+    } else if (servicoLower.includes('colora')) {
+      duracaoNovo = 120; // 2 horas
+    } else if (servicoLower.includes('corte') || servicoLower.includes('escova')) {
+      duracaoNovo = 45; // 45 minutos
+    }
 
     gridHorarios.innerHTML = '';
     secaoHorarios.classList.remove('hidden');
@@ -61,14 +68,13 @@ async function carregarHorarios() {
       const inicioNovoMin = h * 60 + m;
       const fimNovoMin = inicioNovoMin + duracaoNovo;
 
-      // Extração cirúrgica do horário sem interferência de fuso horário/UTC
-      const temConflito = Array.isArray(ocupados) && ocupados.some(ag => {
+      // 1. Conflito com agendamentos existentes no banco
+      let temConflito = Array.isArray(ocupados) && ocupados.some(ag => {
         if (!ag) return false;
 
         const rawInicio = ag.inicio || ag.dataHora || (typeof ag === 'string' ? ag : '');
         if (!rawInicio) return false;
 
-        // Pega exatamente a string "HH:MM" de dentro do texto do banco, ignorando Z/UTC
         const matchInicio = rawInicio.match(/(\d{2}):(\d{2})/);
         if (!matchInicio) return false;
 
@@ -87,6 +93,12 @@ async function carregarHorarios() {
 
         return (inicioNovoMin < fimAgMin) && (fimNovoMin > inicioAgMin);
       });
+
+      // 2. Trava para não estourar o expediente final (ex: serviço de 4h iniciado às 15h ou 16h)
+      const LIMITE_EXPEDIENTE_MIN = 18 * 60; // 18:00 em minutos
+      if (fimNovoMin > LIMITE_EXPEDIENTE_MIN) {
+        temConflito = true;
+      }
 
       const btn = document.createElement('button');
       btn.type = 'button';
