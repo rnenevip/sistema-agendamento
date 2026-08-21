@@ -1,99 +1,82 @@
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
 const app = express();
-const PORT = 3000;
-
 app.use(cors());
 app.use(express.json());
 
-// Número do WhatsApp do Salão (Sua Esposa)
-const TELEFONE_SALAO = "5516996422774";
+// Conexão com o MongoDB Atlas
+const MONGO_URI = 'mongodb+srv://admin:Rtk!27082019@cluster0.czs3zas.mongodb.net/salao?retryWrites=true&w=majority';
 
-// Tabela de Duração Base (em minutos)
-const SERVICOS = {
-  'Corte': 45,
-  'Escova': 45,
-  'Coloração': 120,
-  'Mechas': 240
-};
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('✅ Conectado ao MongoDB Atlas com sucesso!'))
+  .catch(err => console.error('❌ Erro ao conectar ao MongoDB:', err));
 
-// Lista em memória dos agendamentos
-const agendamentos = [];
-
-app.get('/servicos', (req, res) => res.json(SERVICOS));
-
-app.get('/agendamentos/ocupados', (req, res) => {
-  const { data } = req.query;
-  if (!data) return res.status(400).json({ erro: 'Informe a data.' });
-
-  const agendamentosDoDia = agendamentos.filter(a => a.inicio.startsWith(data) && a.status !== 'recusado');
-  res.json(agendamentosDoDia);
+// Esquema/Modelo do Agendamento
+const AgendamentoSchema = new mongoose.Schema({
+  cliente: { type: String, required: true },
+  telefoneCliente: { type: String, required: true },
+  servico: { type: String, required: true },
+  observacao: { type: String, default: '' },
+  inicio: { type: Date, required: true }
 });
 
-// Criar pré-agendamento e gerar link do WhatsApp para o Salão
-app.post('/agendar', (req, res) => {
-  const { cliente, telefone, servico, observacao, dataHora } = req.body;
+const Agendamento = mongoose.model('Agendamento', AgendamentoSchema);
 
-  if (!cliente || !telefone || !servico || !dataHora) {
-    return res.status(400).json({ message: 'Todos os campos são obrigatórios!' });
+// Rota para buscar agendamentos ocupados de uma data específica
+app.get('/agendamentos/ocupados', async (req, res) => {
+  try {
+    const { data } = req.query; // Espera formato YYYY-MM-DD
+    if (!data) return res.status(400).json({ error: 'Data é obrigatória' });
+
+    // Define início e fim do dia em UTC
+    const inicioDia = new Date(`${data}T00:00:00.000Z`);
+    const fimDia = new Date(`${data}T23:59:59.999Z`);
+
+    const agendamentos = await Agendamento.find({
+      inicio: { $gte: inicioDia, $lte: fimDia }
+    }).sort({ inicio: 1 });
+
+    res.json(agendamentos);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar agendamentos' });
   }
-
-  const duracao = SERVICOS[servico];
-  const inicioNovo = new Date(dataHora);
-  const fimNovo = new Date(inicioNovo.getTime() + duracao * 60000);
-
-  // Checar colisão de horários
-  const temConflito = agendamentos.some(ag => {
-    if (ag.status === 'recusado') return false;
-    const inicioAg = new Date(ag.inicio);
-    const fimAg = new Date(ag.fim);
-    return inicioNovo < fimAg && fimNovo > inicioAg;
-  });
-
-  if (temConflito) {
-    return res.status(400).json({ message: 'Horário indisponível! Por favor, escolha outro horário.' });
-  }
-
-  // Formatação amigável de data e hora
-  const dataFormatada = inicioNovo.toLocaleDateString('pt-BR');
-  const horaFormatada = inicioNovo.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-  // Mensagem pronta encaminhada para o WhatsApp da Profissional
-  const textoMensagem = 
-    `Olá! Gostaria de agendar um horário no salão 💇‍♀️\n\n` +
-    `👤 *Cliente:* ${cliente}\n` +
-    `📱 *Contato:* ${telefone}\n` +
-    `📌 *Serviço:* ${servico}\n` +
-    `📅 *Data:* ${dataFormatada}\n` +
-    `⏰ *Horário desejado:* ${horaFormatada}\n` +
-    `📝 *Obs do Cabelo:* ${observacao || 'Nenhuma'}\n\n` +
-    `Aguardando sua confirmação!`;
-
-  const linkWa = `https://api.whatsapp.com/send?phone=${TELEFONE_SALAO}&text=${encodeURIComponent(textoMensagem)}`;
-
-  const novoAgendamento = {
-    id: Date.now(),
-    cliente,
-    telefoneCliente: telefone,
-    servico,
-    duracaoMinutos: duracao,
-    inicio: inicioNovo.toISOString(),
-    fim: fimNovo.toISOString(),
-    observacao: observacao || '',
-    status: 'pendente',
-    linkWhatsappNotificacao: linkWa
-  };
-
-  agendamentos.push(novoAgendamento);
-
-  res.status(201).json({
-    message: 'Solicitação enviada! Clique abaixo para notificar no WhatsApp.',
-    agendamento: novoAgendamento,
-    linkWhatsapp: linkWa
-  });
 });
 
+// Rota para criar novo agendamento ou bloqueio
+app.post('/agendar', async (req, res) => {
+  try {
+    const { cliente, telefone, servico, observacao, dataHora } = req.body;
+
+    if (!cliente || !telefone || !servico || !dataHora) {
+      return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
+    }
+
+    const dataAgendamento = new Date(dataHora);
+
+    // Verifica se o horário já está ocupado
+    const ocupado = await Agendamento.findOne({ inicio: dataAgendamento });
+    if (ocupado) {
+      return res.status(400).json({ error: 'Horário já reservado ou bloqueado' });
+    }
+
+    const novoAgendamento = new Agendamento({
+      cliente,
+      telefoneCliente: telefone,
+      servico,
+      observacao: observacao || '',
+      inicio: dataAgendamento
+    });
+
+    await novoAgendamento.save();
+    res.status(201).json({ message: 'Agendamento criado com sucesso!', agendamento: novoAgendamento });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao salvar agendamento' });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor rodando com número oficial configurado em http://localhost:${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
