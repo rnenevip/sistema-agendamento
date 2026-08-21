@@ -1,3 +1,6 @@
+// URL do backend hospedado no Render
+const API_URL = 'https://sistema-agendamento-8tlb.onrender.com';
+
 const selectServico = document.getElementById('servico');
 const inputData = document.getElementById('data');
 const secaoHorarios = document.getElementById('secaoHorarios');
@@ -6,13 +9,11 @@ const horarioSelecionadoInput = document.getElementById('horarioSelecionado');
 const btnConfirmar = document.getElementById('btnConfirmar');
 const mensagemDiv = document.getElementById('mensagem');
 
-// Horários de atendimento do salão
 const HORARIOS_DIA = [
   "08:00", "09:00", "10:00", "11:00", 
   "13:00", "14:00", "15:00", "16:00", "17:00"
 ];
 
-// Dispara o carregamento dos horários
 selectServico.addEventListener('change', carregarHorarios);
 inputData.addEventListener('change', carregarHorarios);
 inputData.addEventListener('input', carregarHorarios);
@@ -21,25 +22,22 @@ async function carregarHorarios() {
   const servico = selectServico.value;
   const data = inputData.value;
 
-  // Só exibe se os dois campos principais estiverem preenchidos
   if (!servico || !data) {
     secaoHorarios.classList.add('hidden');
     return;
   }
 
   try {
-    // Buscar agendamentos que já existem no servidor
     let ocupados = [];
     try {
-      const resOcupados = await fetch(`http://localhost:3000/agendamentos/ocupados?data=${data}`);
+      const resOcupados = await fetch(`${API_URL}/agendamentos/ocupados?data=${data}`);
       if (resOcupados.ok) {
         ocupados = await resOcupados.json();
       }
     } catch (e) {
-      console.warn("Servidor offline ou sem resposta, gerando horários padrão...");
+      console.warn("Aguardando resposta da API no Render...");
     }
 
-    // Mapeamento de duração local para evitar travamento de busca
     const duracoes = {
       'Corte': 45,
       'Escova': 45,
@@ -54,14 +52,12 @@ async function carregarHorarios() {
     horarioSelecionadoInput.value = '';
 
     HORARIOS_DIA.forEach(hora => {
-      // Montagem de datas segura
       const [ano, mes, dia] = data.split('-');
       const [horaNum, minNum] = hora.split(':');
       
       const inicioNovo = new Date(ano, mes - 1, dia, horaNum, minNum);
       const fimNovo = new Date(inicioNovo.getTime() + duracaoNovo * 60000);
 
-      // Checa colisão com horários ocupados
       const temConflito = ocupados.some(ag => {
         const inicioAg = new Date(ag.inicio);
         const fimAg = new Date(ag.fim);
@@ -81,8 +77,6 @@ async function carregarHorarios() {
           document.querySelectorAll('.btn-horario').forEach(b => b.classList.remove('selecionado'));
           btn.classList.add('selecionado');
           horarioSelecionadoInput.value = `${data}T${hora}:00`;
-          
-          // Libera o botão de confirmação!
           btnConfirmar.disabled = false;
         };
       }
@@ -91,11 +85,10 @@ async function carregarHorarios() {
     });
 
   } catch (err) {
-    console.error("Erro no script:", err);
+    console.error("Erro ao carregar horários:", err);
   }
 }
 
-// Envio do formulário com geração do link de WhatsApp
 document.getElementById('formAgendamento').addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -106,7 +99,7 @@ document.getElementById('formAgendamento').addEventListener('submit', async (e) 
   const dataHora = horarioSelecionadoInput.value;
 
   try {
-    const response = await fetch('http://localhost:3000/agendar', {
+    const response = await fetch(`${API_URL}/agendar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cliente, telefone, servico, observacao, dataHora })
@@ -133,6 +126,6 @@ document.getElementById('formAgendamento').addEventListener('submit', async (e) 
   } catch (error) {
     mensagemDiv.className = 'erro';
     mensagemDiv.classList.remove('hidden');
-    mensagemDiv.textContent = 'Erro ao conectar com o servidor.';
+    mensagemDiv.textContent = 'Erro ao conectar com o servidor em nuvem.';
   }
 });
