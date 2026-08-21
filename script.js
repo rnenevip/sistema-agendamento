@@ -64,18 +64,22 @@ async function carregarHorarios() {
       const inicioNovoMin = h * 60 + m;
       const fimNovoMin = inicioNovoMin + duracaoNovo;
 
-      // Verifica conflito extraindo a hora bruta (sem problemas de fuso horário)
-      const temConflito = ocupados.some(ag => {
-        const horaInicioStr = ag.inicio.includes('T') ? ag.inicio.split('T')[1].substring(0, 5) : ag.inicio.substring(11, 16);
-        const horaFimStr = ag.fim.includes('T') ? ag.fim.split('T')[1].substring(0, 5) : ag.fim.substring(11, 16);
+      // Validação ultra-segura para extrair minutos ocupados sem quebrar o JS
+      const temConflito = Array.isArray(ocupados) && ocupados.some(ag => {
+        try {
+          const strInicio = ag.inicio || ag.dataHora || ag;
+          const strFim = ag.fim || ag.dataHoraFim;
 
-        const [hIn, mIn] = horaInicioStr.split(':').map(Number);
-        const [hFim, mFim] = horaFimStr.split(':').map(Number);
+          const dInicio = new Date(strInicio);
+          const dFim = strFim ? new Date(strFim) : new Date(dInicio.getTime() + 60 * 60 * 1000);
 
-        const inicioAgMin = hIn * 60 + mIn;
-        const fimAgMin = hFim * 60 + mFim;
+          const inicioAgMin = dInicio.getHours() * 60 + dInicio.getMinutes();
+          const fimAgMin = dFim.getHours() * 60 + dFim.getMinutes();
 
-        return (inicioNovoMin < fimAgMin) && (fimNovoMin > inicioAgMin);
+          return (inicioNovoMin < fimAgMin) && (fimNovoMin > inicioAgMin);
+        } catch (err) {
+          return false;
+        }
       });
 
       const btn = document.createElement('button');
@@ -84,7 +88,6 @@ async function carregarHorarios() {
       btn.textContent = hora;
 
       if (temConflito) {
-        // Desativa o botão no HTML -> Ativa a regra .btn-horario:disabled do seu CSS
         btn.disabled = true;
         btn.classList.add('indisponivel');
       } else {
