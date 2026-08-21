@@ -1,6 +1,9 @@
 // URL do backend hospedado no Render
 const API_URL = 'https://sistema-agendamento-8tlb.onrender.com';
 
+// NUMERO DO WHATSAPP DO SALÃO (Com DDD, apenas números)
+const TELEFONE_SALAO = '5516999999999'; // 👈 COLOQUE O SEU NÚMERO AQUI (Ex: 55 + DDD + Numero)
+
 const selectServico = document.getElementById('servico');
 const inputData = document.getElementById('data');
 const secaoHorarios = document.getElementById('secaoHorarios');
@@ -105,23 +108,51 @@ document.getElementById('formAgendamento').addEventListener('submit', async (e) 
       body: JSON.stringify({ cliente, telefone, servico, observacao, dataHora })
     });
 
-    const data = await response.json();
+    const dataRes = await response.json();
 
     if (response.ok) {
       mensagemDiv.className = 'sucesso';
       mensagemDiv.classList.remove('hidden');
+
+      // Formata a data para exibir bonito (ex: 22/08/2026)
+      const [dataPart, horaPart] = dataHora.split('T');
+      const [ano, mes, dia] = dataPart.split('-');
+      const dataFormatada = `${dia}/${mes}/${ano}`;
+      const horaFormatada = horaPart.substring(0, 5);
+
+      // Prepara o texto formatado para a mensagem do WhatsApp
+      const textoMensagem = `Olá! Fiz um agendamento pelo site:\n\n` +
+        `👤 *Cliente:* ${cliente}\n` +
+        `📱 *Telefone:* ${telefone}\n` +
+        `💇‍♀️ *Serviço:* ${servico}\n` +
+        `📅 *Data:* ${dataFormatada}\n` +
+        `⏰ *Horário:* ${horaFormatada}\n` +
+        (observacao ? `📝 *Obs:* ${observacao}` : '');
+
+      // Cria a URL oficial do WhatsApp com a mensagem codificada
+      const urlWhatsapp = `https://wa.me/${TELEFONE_SALAO}?text=${encodeURIComponent(textoMensagem)}`;
+
       mensagemDiv.innerHTML = `
-        <p><strong>${data.message}</strong></p>
+        <p><strong>${dataRes.message || 'Agendamento criado com sucesso!'}</strong></p>
         <br>
-        <a href="${data.linkWhatsapp}" target="_blank" style="display:inline-block; padding:10px 15px; background:#25D366; color:white; border-radius:6px; text-decoration:none; font-weight:bold;">
+        <button type="button" id="btnNotificarWhatsapp" style="display:inline-block; padding:12px 18px; background:#25D366; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:15px;">
            📲 Enviar Notificação no WhatsApp
-        </a>
+        </button>
       `;
-      carregarHorarios();
+
+      // Evento de clique para abrir o WhatsApp em uma nova aba
+      document.getElementById('btnNotificarWhatsapp').onclick = () => {
+        window.open(urlWhatsapp, '_blank');
+      };
+
+      // Reseta o formulário
+      document.getElementById('formAgendamento').reset();
+      secaoHorarios.classList.add('hidden');
+      
     } else {
       mensagemDiv.className = 'erro';
       mensagemDiv.classList.remove('hidden');
-      mensagemDiv.textContent = data.message;
+      mensagemDiv.textContent = dataRes.message || 'Erro ao realizar agendamento.';
     }
   } catch (error) {
     mensagemDiv.className = 'erro';
