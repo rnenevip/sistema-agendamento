@@ -32,8 +32,8 @@ async function carregarAgendamentos() {
 
     listaAgendamentos.innerHTML = '';
     agendamentos.forEach(ag => {
-      const inicio = new Date(ag.inicio);
-      const horaStr = `${String(inicio.getHours()).padStart(2, '0')}:${String(inicio.getMinutes()).padStart(2, '0')}`;
+      // Extrai diretamente os caracteres da hora sem converter fuso
+      const horaStr = ag.inicio.split('T')[1].substring(0, 5);
 
       const div = document.createElement('div');
       div.className = ag.cliente.includes('BLOQUEADO') ? 'card-agendamento card-bloqueado' : 'card-agendamento';
