@@ -1,24 +1,6 @@
-const API_URL = 'https://sistema-agendamento-8tlb.onrender.com'; 
+const API_URL = 'https://sistema-agendamento-8tlb.onrender.com';
 
-// Elementos da Tela
-const filtroData = document.getElementById('filtroData');
-const listaAgendamentos = document.getElementById('listaAgendamentos');
-
-// Elementos de Bloqueio
-const dataBloqueio = document.getElementById('dataBloqueio');
-const horaInicioBloqueio = document.getElementById('horaInicioBloqueio');
-const btnBloquearIntervalo = document.getElementById('btnBloquearIntervalo');
-const btnBloquearDiaTodo = document.getElementById('btnBloquearDiaTodo');
-
-// Elementos do Agendamento Manual
-const manualCliente = document.getElementById('manualCliente');
-const manualTelefone = document.getElementById('manualTelefone');
-const manualServico = document.getElementById('manualServico');
-const manualData = document.getElementById('manualData');
-const manualHoraInicio = document.getElementById('manualHoraInicio');
-const btnAgendarManual = document.getElementById('btnAgendarManual');
-
-// 1. Preenche a data de hoje nos campos ao abrir
+// Preenche a data de hoje nos inputs ao abrir
 function setHoje() {
   const hoje = new Date();
   const ano = hoje.getFullYear();
@@ -26,17 +8,23 @@ function setHoje() {
   const dia = String(hoje.getDate()).padStart(2, '0');
   const dataFormatada = `${ano}-${mes}-${dia}`;
   
+  const filtroData = document.getElementById('filtroData');
+  const dataBloqueio = document.getElementById('dataBloqueio');
+  const manualData = document.getElementById('manualData');
+
   if (filtroData && !filtroData.value) filtroData.value = dataFormatada;
   if (dataBloqueio && !dataBloqueio.value) dataBloqueio.value = dataFormatada;
   if (manualData && !manualData.value) manualData.value = dataFormatada;
 }
 
-// 2. Carrega e exibe a lista do dia
+// Busca e renderiza os agendamentos na tela
 async function carregarAgendamentos() {
   setHoje();
-  const dataSelecionada = filtroData.value;
+  const filtroData = document.getElementById('filtroData');
+  const listaAgendamentos = document.getElementById('listaAgendamentos');
   
-  if (!dataSelecionada) return;
+  if (!filtroData || !listaAgendamentos) return;
+  const dataSelecionada = filtroData.value;
 
   listaAgendamentos.innerHTML = '<p>Carregando agendamentos...</p>';
 
@@ -73,13 +61,16 @@ async function carregarAgendamentos() {
   }
 }
 
-// 3. Bloquear Horário Específico
+// Bloqueio de Horário
 async function bloquearHorario() {
-  const data = dataBloqueio.value;
-  const hora = horaInicioBloqueio.value;
+  const dataBloqueio = document.getElementById('dataBloqueio');
+  const horaInicioBloqueio = document.getElementById('horaInicioBloqueio');
+
+  const data = dataBloqueio ? dataBloqueio.value : '';
+  const hora = horaInicioBloqueio ? horaInicioBloqueio.value : '08:00';
 
   if (!data) {
-    alert('Selecione a data para o bloqueio.');
+    alert('Selecione uma data para realizar o bloqueio.');
     return;
   }
 
@@ -98,24 +89,24 @@ async function bloquearHorario() {
     const result = await res.json();
 
     if (res.ok) {
-      alert('Horário bloqueado com sucesso!');
+      alert('✅ Horário bloqueado com sucesso!');
       carregarAgendamentos();
     } else {
-      alert(result.error || 'Não foi possível bloquear.');
+      alert(`⚠️ ${result.error || 'Não foi possível bloquear este horário.'}`);
     }
   } catch (err) {
     console.error(err);
-    alert('Erro ao conectar ao servidor.');
+    alert('❌ Erro de conexão com o servidor.');
   }
 }
 
-// 4. Criar Agendamento Manual
+// Agendamento Manual
 async function agendarManual() {
-  const cliente = manualCliente.value.trim();
-  const telefone = manualTelefone.value.trim();
-  const servico = manualServico.value;
-  const data = manualData.value;
-  const hora = manualHoraInicio.value;
+  const cliente = document.getElementById('manualCliente')?.value.trim();
+  const telefone = document.getElementById('manualTelefone')?.value.trim();
+  const servico = document.getElementById('manualServico')?.value;
+  const data = document.getElementById('manualData')?.value;
+  const hora = document.getElementById('manualHoraInicio')?.value;
 
   if (!cliente || !data) {
     alert('Preencha o nome do cliente e a data.');
@@ -139,22 +130,24 @@ async function agendarManual() {
     const result = await res.json();
 
     if (res.ok) {
-      alert('Agendamento realizado com sucesso!');
-      manualCliente.value = '';
-      manualTelefone.value = '';
+      alert('✅ Agendamento realizado com sucesso!');
+      document.getElementById('manualCliente').value = '';
+      document.getElementById('manualTelefone').value = '';
       carregarAgendamentos();
     } else {
-      alert(result.error || 'Erro ao realizar agendamento.');
+      alert(`⚠️ ${result.error || 'Não foi possível agendar.'}`);
     }
   } catch (err) {
     console.error(err);
-    alert('Erro ao conectar ao servidor.');
+    alert('❌ Erro de conexão com o servidor.');
   }
 }
 
-// Vincula os Eventos e Botões
-if (filtroData) filtroData.addEventListener('change', carregarAgendamentos);
-if (btnBloquearIntervalo) btnBloquearIntervalo.addEventListener('click', bloquearHorario);
-if (btnAgendarManual) btnAgendarManual.addEventListener('click', agendarManual);
-
-document.addEventListener('DOMContentLoaded', carregarAgendamentos);
+// Escuta a alteração do filtro de data
+document.addEventListener('DOMContentLoaded', () => {
+  const filtroData = document.getElementById('filtroData');
+  if (filtroData) {
+    filtroData.addEventListener('change', carregarAgendamentos);
+  }
+  carregarAgendamentos();
+});
