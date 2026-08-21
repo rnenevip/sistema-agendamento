@@ -134,3 +134,12 @@ input:focus, select:focus {
 .hidden { 
   display: none; 
 }
+
+/* Estilo para botões ocupados/indisponíveis */
+.btn-horario.indisponivel {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  border-color: #f5c6cb !important;
+  cursor: not-allowed !important;
+  opacity: 0.8;
+}

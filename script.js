@@ -60,20 +60,21 @@ async function carregarHorarios() {
     horarioSelecionadoInput.value = '';
 
     HORARIOS_DIA.forEach(hora => {
-      // Converte hora atual em minutos do dia (ex: 09:00 -> 540 min)
       const [h, m] = hora.split(':').map(Number);
       const inicioNovoMin = h * 60 + m;
       const fimNovoMin = inicioNovoMin + duracaoNovo;
 
-      // Verifica conflito comparando minutos do dia diretamente
+      // Verifica conflito comparando texto da hora limpo sem conversão de UTC
       const temConflito = ocupados.some(ag => {
-        // Extrai a hora diretamente da string recebida do backend
-        // Aceita formatos "2026-08-22T09:00:00" ou datas cheias
-        const dInicio = new Date(ag.inicio);
-        const dFim = new Date(ag.fim);
+        // Extrai "09:00" da string "2026-08-22T09:00:00..."
+        const horaInicioStr = ag.inicio.includes('T') ? ag.inicio.split('T')[1].substring(0, 5) : ag.inicio.substring(11, 16);
+        const horaFimStr = ag.fim.includes('T') ? ag.fim.split('T')[1].substring(0, 5) : ag.fim.substring(11, 16);
 
-        const inicioAgMin = dInicio.getHours() * 60 + dInicio.getMinutes();
-        const fimAgMin = dFim.getHours() * 60 + dFim.getMinutes();
+        const [hIn, mIn] = horaInicioStr.split(':').map(Number);
+        const [hFim, mFim] = horaFimStr.split(':').map(Number);
+
+        const inicioAgMin = hIn * 60 + mIn;
+        const fimAgMin = hFim * 60 + mFim;
 
         return (inicioNovoMin < fimAgMin) && (fimNovoMin > inicioAgMin);
       });
@@ -85,10 +86,8 @@ async function carregarHorarios() {
 
       if (temConflito) {
         btn.classList.add('indisponivel');
-        btn.style.backgroundColor = '#f8d7da';
-        btn.style.color = '#721c24';
-        btn.style.borderColor = '#f5c6cb';
-        btn.style.cursor = 'not-allowed';
+        // Aplica o vermelho forçado no elemento
+        btn.setAttribute('style', 'background-color: #f8d7da !important; color: #721c24 !important; border-color: #f5c6cb !important; cursor: not-allowed !important;');
         
         btn.onclick = () => {
           mensagemDiv.className = 'erro';
