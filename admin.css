@@ -34,7 +34,10 @@ label {
   margin-bottom: 6px;
 }
 
-input[type="date"], select {
+/* Ajustado para 100% para que Nome, Telefone, Selects e Inputs fiquem grandes e alinhados */
+input[type="text"],
+input[type="date"],
+select {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
@@ -48,11 +51,15 @@ input[type="date"], select {
   display: flex;
   gap: 10px;
   align-items: center;
+  margin-bottom: 10px;
+}
+
+.bloqueio-form div {
+  flex: 1;
 }
 
 .bloqueio-form select {
   margin-bottom: 0;
-  flex: 1;
 }
 
 .btn-bloquear {
