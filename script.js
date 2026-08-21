@@ -46,7 +46,6 @@ async function carregarHorarios() {
       console.warn("Aguardando resposta da API no Render...");
     }
 
-    // Identificação direta e segura do tempo de duração
     let duracaoNovo = 60;
     if (servico.includes('Corte') || servico.includes('Escova')) duracaoNovo = 45;
     else if (servico.includes('Coloração')) duracaoNovo = 120;
@@ -62,15 +61,25 @@ async function carregarHorarios() {
       const inicioNovoMin = h * 60 + m;
       const fimNovoMin = inicioNovoMin + duracaoNovo;
 
-      // Verificação simples e sem quebra de código
+      // Comparação direta de horas em texto para imunidade total a fuso horário
       const temConflito = Array.isArray(ocupados) && ocupados.some(ag => {
-        if (!ag || !ag.inicio) return false;
-        
-        const dInicio = new Date(ag.inicio);
-        const dFim = ag.fim ? new Date(ag.fim) : new Date(dInicio.getTime() + 60 * 60 * 1000);
+        if (!ag) return false;
 
-        const inicioAgMin = dInicio.getHours() * 60 + dInicio.getMinutes();
-        const fimAgMin = dFim.getHours() * 60 + dFim.getMinutes();
+        const strInicio = ag.inicio || ag.dataHora || (typeof ag === 'string' ? ag : '');
+        const strFim = ag.fim || ag.dataHoraFim || '';
+
+        if (!strInicio) return false;
+
+        const horaInicioText = strInicio.includes('T') ? strInicio.split('T')[1].substring(0, 5) : strInicio.substring(11, 16);
+        const [hIn, mIn] = horaInicioText.split(':').map(Number);
+        const inicioAgMin = hIn * 60 + mIn;
+
+        let fimAgMin = inicioAgMin + 60; 
+        if (strFim) {
+          const horaFimText = strFim.includes('T') ? strFim.split('T')[1].substring(0, 5) : strFim.substring(11, 16);
+          const [hFim, mFim] = horaFimText.split(':').map(Number);
+          fimAgMin = hFim * 60 + mFim;
+        }
 
         return (inicioNovoMin < fimAgMin) && (fimNovoMin > inicioAgMin);
       });
