@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendamento - Salão de Beleza</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Agendar Horário</h2>
+    
+    <form id="formAgendamento">
+      <label for="cliente">Seu Nome:</label>
+      <input type="text" id="cliente" required placeholder="Digite seu nome">
+
+      <label for="telefone">WhatsApp (com DDD):</label>
+      <input type="tel" id="telefone" required placeholder="Ex: 16999998888">
+
+      <label for="servico">Serviço Desejado:</label>
+      <select id="servico" required>
+        <option value="">Selecione...</option>
+        <option value="Corte">Corte (45 min)</option>
+        <option value="Escova">Escova (45 min)</option>
+        <option value="Coloração">Coloração (2h)</option>
+        <option value="Mechas">Mechas (4h)</option>
+      </select>
+
+      <label for="observacao">Detalhes do Cabelo (Comprimento, química recente):</label>
+      <input type="text" id="observacao" placeholder="Ex: Cabelo longo, muito volumoso">
+
+      <label for="data">Data do Atendimento:</label>
+      <input type="date" id="data" required>
+
+      <div id="secaoHorarios" class="hidden">
+        <label>Escolha um Horário Inicial:</label>
+        <div id="gridHorarios" class="grid-horarios"></div>
+      </div>
+
+      <input type="hidden" id="horarioSelecionado">
+
+      <button type="submit" id="btnConfirmar" disabled>Solicitar Agendamento</button>
+    </form>
+
+    <div id="mensagem" class="hidden"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
