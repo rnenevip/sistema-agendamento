@@ -1,5 +1,5 @@
 // ATENÇÃO: Verifique se este é o link exato do seu serviço Web no Render
-const API_URL = 'https://sistema-agendamento-backend.onrender.com'; 
+const API_URL = 'https://sistema-agendamento-8tlb.onrender.com';
 
 const filtroData = document.getElementById('filtroData');
 const listaAgendamentos = document.getElementById('listaAgendamentos');
