@@ -25,7 +25,6 @@ async function carregarHorarios() {
   const servico = selectServico.value;
   const data = inputData.value;
 
-  // Limpa mensagens anteriores
   mensagemDiv.innerHTML = '';
   mensagemDiv.className = 'hidden';
 
@@ -45,7 +44,6 @@ async function carregarHorarios() {
       console.warn("Aguardando resposta da API no Render...");
     }
 
-    // Duração dos serviços em minutos
     const duracoes = {
       'Corte': 45,
       'Escova': 45,
@@ -53,7 +51,6 @@ async function carregarHorarios() {
       'Mechas': 240
     };
     
-    // Pega o nome limpo do serviço (ex: "Coloração (2h)" -> "Coloração")
     const servicoNome = servico.split(' (')[0].trim();
     const duracaoNovo = duracoes[servicoNome] || 60;
 
@@ -63,18 +60,20 @@ async function carregarHorarios() {
     horarioSelecionadoInput.value = '';
 
     HORARIOS_DIA.forEach(hora => {
-      // Converte data/hora local de forma precisa
-      const [ano, mes, dia] = data.split('-').map(Number);
-      const [horaNum, minNum] = hora.split(':').map(Number);
-      
-      const inicioNovo = new Date(ano, mes - 1, dia, horaNum, minNum).getTime();
-      const fimNovo = inicioNovo + (duracaoNovo * 60000);
+      // Cria a data local no formato de string YYYY-MM-DDTHH:MM:00
+      const inicioNovoDate = new Date(`${data}T${hora}:00`);
+      const fimNovoDate = new Date(inicioNovoDate.getTime() + duracaoNovo * 60000);
 
-      // Verifica se há sobreposição com algum agendamento do banco de dados
+      const inicioNovoTime = inicioNovoDate.getTime();
+      const fimNovoTime = fimNovoDate.getTime();
+
+      // Checa conflitos ignorando a conversão automática de fuso do ISOString
       const temConflito = ocupados.some(ag => {
-        const inicioAg = new Date(ag.inicio).getTime();
-        const fimAg = new Date(ag.fim).getTime();
-        return (inicioNovo < fimAg) && (fimNovo > inicioAg);
+        // Pega os tempos de inicio e fim direto do banco de dados
+        const inicioAgTime = new Date(ag.inicio).getTime();
+        const fimAgTime = new Date(ag.fim).getTime();
+
+        return (inicioNovoTime < fimAgTime) && (fimNovoTime > inicioAgTime);
       });
 
       const btn = document.createElement('button');
@@ -83,7 +82,6 @@ async function carregarHorarios() {
       btn.textContent = hora;
 
       if (temConflito) {
-        // Fica vermelho e bloqueado de cara
         btn.classList.add('indisponivel');
         btn.style.backgroundColor = '#f8d7da';
         btn.style.color = '#721c24';
@@ -97,7 +95,6 @@ async function carregarHorarios() {
         };
       } else {
         btn.onclick = () => {
-          // Limpa qualquer mensagem ao escolher um horário válido
           mensagemDiv.innerHTML = '';
           mensagemDiv.className = 'hidden';
 
@@ -187,7 +184,6 @@ document.getElementById('formAgendamento').addEventListener('submit', async (e) 
       mensagemDiv.className = 'erro';
       mensagemDiv.classList.remove('hidden');
       mensagemDiv.textContent = dataRes.message || 'Este horário não está disponível.';
-      // Recarrega a lista para pintar de vermelho o horário conflitante
       carregarHorarios();
     }
   } catch (error) {
