@@ -95,6 +95,10 @@ async function carregarHorarios() {
 document.getElementById('formAgendamento').addEventListener('submit', async (e) => {
   e.preventDefault();
 
+  // Esconde e limpa a div de mensagem antes de enviar a nova requisição
+  mensagemDiv.innerHTML = '';
+  mensagemDiv.className = 'hidden';
+
   const cliente = document.getElementById('cliente').value;
   const telefone = document.getElementById('telefone').value;
   const servico = selectServico.value;
@@ -135,7 +139,7 @@ document.getElementById('formAgendamento').addEventListener('submit', async (e) 
       mensagemDiv.innerHTML = `
         <p><strong>${dataRes.message || 'Agendamento criado com sucesso!'}</strong></p>
         <br>
-        <button type="button" id="btnNotificarWhatsapp" style="display:inline-block; padding:12px 18px; background:#25D366; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:15px;">
+        <button type="button" id="btnNotificarWhatsapp" style="display:inline-block; padding:12px 18px; background:#25D366; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:15px; width:100%;">
            📲 Enviar Notificação no WhatsApp
         </button>
       `;
