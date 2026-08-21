@@ -60,20 +60,22 @@ async function carregarHorarios() {
     horarioSelecionadoInput.value = '';
 
     HORARIOS_DIA.forEach(hora => {
-      // Cria a data local no formato de string YYYY-MM-DDTHH:MM:00
-      const inicioNovoDate = new Date(`${data}T${hora}:00`);
-      const fimNovoDate = new Date(inicioNovoDate.getTime() + duracaoNovo * 60000);
+      // Converte hora atual em minutos do dia (ex: 09:00 -> 540 min)
+      const [h, m] = hora.split(':').map(Number);
+      const inicioNovoMin = h * 60 + m;
+      const fimNovoMin = inicioNovoMin + duracaoNovo;
 
-      const inicioNovoTime = inicioNovoDate.getTime();
-      const fimNovoTime = fimNovoDate.getTime();
-
-      // Checa conflitos ignorando a conversão automática de fuso do ISOString
+      // Verifica conflito comparando minutos do dia diretamente
       const temConflito = ocupados.some(ag => {
-        // Pega os tempos de inicio e fim direto do banco de dados
-        const inicioAgTime = new Date(ag.inicio).getTime();
-        const fimAgTime = new Date(ag.fim).getTime();
+        // Extrai a hora diretamente da string recebida do backend
+        // Aceita formatos "2026-08-22T09:00:00" ou datas cheias
+        const dInicio = new Date(ag.inicio);
+        const dFim = new Date(ag.fim);
 
-        return (inicioNovoTime < fimAgTime) && (fimNovoTime > inicioAgTime);
+        const inicioAgMin = dInicio.getHours() * 60 + dInicio.getMinutes();
+        const fimAgMin = dFim.getHours() * 60 + dFim.getMinutes();
+
+        return (inicioNovoMin < fimAgMin) && (fimNovoMin > inicioAgMin);
       });
 
       const btn = document.createElement('button');
