@@ -1,8 +1,8 @@
 // URL do backend hospedado no Render
 const API_URL = 'https://sistema-agendamento-8tlb.onrender.com';
 
-// NUMERO DO WHATSAPP DO SALÃO (Com DDD, apenas números)
-const TELEFONE_SALAO = '5516999999999'; // 👈 COLOQUE O SEU NÚMERO AQUI (Ex: 55 + DDD + Numero)
+// NUMERO DO WHATSAPP DO SALÃO
+const TELEFONE_SALAO = '5516996422774'; 
 
 const selectServico = document.getElementById('servico');
 const inputData = document.getElementById('data');
@@ -73,10 +73,23 @@ async function carregarHorarios() {
       btn.textContent = hora;
 
       if (temConflito) {
-        btn.disabled = true;
-        btn.title = 'Horário indisponível';
+        // Estiliza em vermelho quando indisponível
+        btn.style.backgroundColor = '#ffe6e6';
+        btn.style.color = '#d9534f';
+        btn.style.borderColor = '#f5c6cb';
+        btn.style.cursor = 'not-allowed';
+        
+        btn.onclick = () => {
+          mensagemDiv.className = 'erro';
+          mensagemDiv.classList.remove('hidden');
+          mensagemDiv.textContent = 'Este horário não está disponível.';
+        };
       } else {
         btn.onclick = () => {
+          // Limpa mensagem de erro caso estivesse exibida
+          mensagemDiv.innerHTML = '';
+          mensagemDiv.className = 'hidden';
+
           document.querySelectorAll('.btn-horario').forEach(b => b.classList.remove('selecionado'));
           btn.classList.add('selecionado');
           horarioSelecionadoInput.value = `${data}T${hora}:00`;
@@ -95,7 +108,7 @@ async function carregarHorarios() {
 document.getElementById('formAgendamento').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // Esconde e limpa a div de mensagem antes de enviar a nova requisição
+  // Esconde e limpa a div de mensagem antes de enviar
   mensagemDiv.innerHTML = '';
   mensagemDiv.className = 'hidden';
 
@@ -104,6 +117,13 @@ document.getElementById('formAgendamento').addEventListener('submit', async (e) 
   const servico = selectServico.value;
   const observacao = document.getElementById('observacao').value;
   const dataHora = horarioSelecionadoInput.value;
+
+  if (!dataHora) {
+    mensagemDiv.className = 'erro';
+    mensagemDiv.classList.remove('hidden');
+    mensagemDiv.textContent = 'Este horário não está disponível.';
+    return;
+  }
 
   try {
     const response = await fetch(`${API_URL}/agendar`, {
@@ -118,13 +138,11 @@ document.getElementById('formAgendamento').addEventListener('submit', async (e) 
       mensagemDiv.className = 'sucesso';
       mensagemDiv.classList.remove('hidden');
 
-      // Formata a data para exibir bonito (ex: 22/08/2026)
       const [dataPart, horaPart] = dataHora.split('T');
       const [ano, mes, dia] = dataPart.split('-');
       const dataFormatada = `${dia}/${mes}/${ano}`;
       const horaFormatada = horaPart.substring(0, 5);
 
-      // Prepara o texto formatado para a mensagem do WhatsApp
       const textoMensagem = `Olá! Fiz um agendamento pelo site:\n\n` +
         `👤 *Cliente:* ${cliente}\n` +
         `📱 *Telefone:* ${telefone}\n` +
@@ -133,7 +151,6 @@ document.getElementById('formAgendamento').addEventListener('submit', async (e) 
         `⏰ *Horário:* ${horaFormatada}\n` +
         (observacao ? `📝 *Obs:* ${observacao}` : '');
 
-      // Cria a URL oficial do WhatsApp com a mensagem codificada
       const urlWhatsapp = `https://wa.me/${TELEFONE_SALAO}?text=${encodeURIComponent(textoMensagem)}`;
 
       mensagemDiv.innerHTML = `
@@ -144,19 +161,17 @@ document.getElementById('formAgendamento').addEventListener('submit', async (e) 
         </button>
       `;
 
-      // Evento de clique para abrir o WhatsApp em uma nova aba
       document.getElementById('btnNotificarWhatsapp').onclick = () => {
         window.open(urlWhatsapp, '_blank');
       };
 
-      // Reseta o formulário
       document.getElementById('formAgendamento').reset();
       secaoHorarios.classList.add('hidden');
       
     } else {
       mensagemDiv.className = 'erro';
       mensagemDiv.classList.remove('hidden');
-      mensagemDiv.textContent = dataRes.message || 'Erro ao realizar agendamento.';
+      mensagemDiv.textContent = dataRes.message || 'Este horário não está disponível.';
     }
   } catch (error) {
     mensagemDiv.className = 'erro';
