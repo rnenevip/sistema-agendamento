@@ -3,22 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel do Administrador - Agendamentos</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Painel do Salão - Administração</title>
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-  <div class="container admin-container">
-    <h2>Painel do Administrador</h2>
+  <div class="admin-container">
+    <h2>Painel da Profissional 💇‍♀️</h2>
+    
+    <div class="field-box">
+      <label for="filtroData">Selecione a Data de Consulta:</label>
+      <input type="date" id="filtroData">
+    </div>
 
-    <!-- Seção de Bloqueio Manual de Horário -->
-    <div class="card-admin">
-      <h3>1. Bloquear Horário / Dia</h3>
-      <form id="formBloqueio">
-        <label for="dataBloqueio">Data:</label>
-        <input type="date" id="dataBloqueio" required>
+    <h3>Agendamentos do Dia</h3>
+    <div id="listaAgendamentos">Carregando...</div>
 
-        <label for="horaInicioBloqueio">Horário Inicial:</label>
-        <select id="horaInicioBloqueio" required>
+    <hr class="divisor">
+
+    <h3>1. Bloquear Horários (Pausas / Folga)</h3>
+    <div class="field-box">
+      <label>Data do Bloqueio:</label>
+      <input type="date" id="dataBloqueio">
+    </div>
+
+    <div class="row-flex">
+      <div>
+        <label>De:</label>
+        <select id="horaInicioBloqueio">
           <option value="08:00">08:00</option>
           <option value="09:00">09:00</option>
           <option value="10:00">10:00</option>
@@ -29,9 +40,11 @@
           <option value="16:00">16:00</option>
           <option value="17:00">17:00</option>
         </select>
+      </div>
 
-        <label for="horaFimBloqueio">Horário Final:</label>
-        <select id="horaFimBloqueio" required>
+      <div>
+        <label>Até:</label>
+        <select id="horaFimBloqueio">
           <option value="09:00">09:00</option>
           <option value="10:00">10:00</option>
           <option value="11:00">11:00</option>
@@ -42,73 +55,75 @@
           <option value="17:00">17:00</option>
           <option value="18:00">18:00</option>
         </select>
-
-        <label for="motivoBloqueio">Motivo do Bloqueio (Opcional):</label>
-        <input type="text" id="motivoBloqueio" placeholder="Ex: Almoço, Compromisso Pessoal">
-
-        <button type="submit" class="btn-danger">Bloquear Horário</button>
-        <button type="button" id="btnBloquearDia" class="btn-warning">🚫 Bloquear Dia Todo</button>
-      </form>
+      </div>
     </div>
 
-    <!-- Seção de Agendamento Manual -->
-    <div class="card-admin">
-      <h3>2. Agendamento Manual / Futuro</h3>
-      <form id="formAgendamentoManual">
-        <label for="clienteManual">Nome do Cliente:</label>
-        <input type="text" id="clienteManual" required placeholder="Digite o nome completo">
+    <button type="button" id="btnBloquearIntervalo" onclick="bloquearHorario()" class="btn btn-red">Bloquear Horário</button>
+    <button type="button" id="btnBloquearDiaTodo" class="btn btn-purple">🚫 Bloquear Dia Todo</button>
 
-        <label for="telefoneManual">Telefone / WhatsApp:</label>
-        <input type="tel" id="telefoneManual" required placeholder="(00) 00000-0000">
+    <hr class="divisor">
 
-        <label for="servicoManual">Serviço:</label>
-        <select id="servicoManual" required>
-          <option value="Corte">Corte</option>
-          <option value="Escova">Escova</option>
-          <option value="Tintura">Tintura</option>
-          <option value="Plástica">Plástica</option>
-          <option value="Mechas">Mechas</option>
+    <h3>2. Agendamento Manual / Futuro</h3>
+    
+    <div class="field-box">
+      <label>Nome do Cliente:</label>
+      <input type="text" id="manualCliente" placeholder="Digite o nome completo">
+    </div>
+
+    <div class="field-box">
+      <label>Telefone / WhatsApp:</label>
+      <input type="text" id="manualTelefone" placeholder="(00) 00000-0000">
+    </div>
+
+    <div class="field-box">
+      <label>Serviço:</label>
+      <select id="manualServico">
+        <option value="Corte">Corte</option>
+        <option value="Escova">Escova</option>
+        <option value="Tintura">Tintura</option>
+        <option value="Plástica">Plástica</option>
+        <option value="Mechas">Mechas</option>
+      </select>
+    </div>
+
+    <div class="field-box">
+      <label>Data:</label>
+      <input type="date" id="manualData">
+    </div>
+
+    <div class="row-flex">
+      <div>
+        <label>De:</label>
+        <select id="manualHoraInicio">
+          <option value="08:00">08:00</option>
+          <option value="09:00">09:00</option>
+          <option value="10:00">10:00</option>
+          <option value="11:00">11:00</option>
+          <option value="13:00">13:00</option>
+          <option value="14:00">14:00</option>
+          <option value="15:00">15:00</option>
+          <option value="16:00">16:00</option>
+          <option value="17:00">17:00</option>
         </select>
+      </div>
 
-        <label for="dataManual">Data:</label>
-        <input type="date" id="dataManual" required>
-
-        <div class="flex-row">
-          <div>
-            <label for="horaInicioManual">De:</label>
-            <select id="horaInicioManual" required>
-              <option value="08:00">08:00</option>
-              <option value="09:00">09:00</option>
-              <option value="10:00">10:00</option>
-              <option value="11:00">11:00</option>
-              <option value="13:00">13:00</option>
-              <option value="14:00">14:00</option>
-              <option value="15:00">15:00</option>
-              <option value="16:00">16:00</option>
-              <option value="17:00">17:00</option>
-            </select>
-          </div>
-          <div>
-            <label for="horaFimManual">Até:</label>
-            <select id="horaFimManual" required>
-              <option value="09:00">09:00</option>
-              <option value="10:00">10:00</option>
-              <option value="11:00">11:00</option>
-              <option value="12:00">12:00</option>
-              <option value="14:00">14:00</option>
-              <option value="15:00">15:00</option>
-              <option value="16:00">16:00</option>
-              <option value="17:00">17:00</option>
-              <option value="18:00">18:00</option>
-            </select>
-          </div>
-        </div>
-
-        <button type="submit" class="btn-success">🗓️ Agendar Cliente</button>
-      </form>
+      <div>
+        <label>Até:</label>
+        <select id="manualHoraFim">
+          <option value="09:00">09:00</option>
+          <option value="10:00">10:00</option>
+          <option value="11:00">11:00</option>
+          <option value="12:00">12:00</option>
+          <option value="14:00">14:00</option>
+          <option value="15:00">15:00</option>
+          <option value="16:00">16:00</option>
+          <option value="17:00">17:00</option>
+          <option value="18:00">18:00</option>
+        </select>
+      </div>
     </div>
 
-    <div id="mensagemAdmin" class="hidden"></div>
+    <button type="button" id="btnAgendarManual" onclick="agendarManual()" class="btn btn-green">📅 Agendar Cliente</button>
   </div>
 
   <script src="admin.js"></script>
