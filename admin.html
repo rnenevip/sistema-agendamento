@@ -3,14 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel Administrativo</title>
+  <title>Painel Administrativo - Studio VT Hair</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <!-- TELA DE LOGIN -->
   <div id="telaLogin" class="container">
-    <h2>🔐 Acesso ao Sistema</h2>
+    <div class="logo-header">
+      <h1>Studio VT Hair</h1>
+      <p>Acesso Restrito ao Painel</p>
+    </div>
+
     <form onsubmit="fazerLogin(event)">
       <label>Usuário:</label>
       <input type="text" id="loginUsuario" required>
@@ -25,9 +29,9 @@
   <!-- TELA PRINCIPAL ADMIN -->
   <div id="telaAdmin" class="container hidden">
     <div class="topo-admin">
-      <h1 style="font-size: 24px; color: #333;">Painel</h1>
+      <h1 style="font-size: 20px; color: #e5c158;">Painel VT Hair</h1>
       <div class="botoes-topo">
-        <button type="button" onclick="abrirModalBloqueio()" class="btn-add-user" style="background-color: #dc3545;">🚫 Bloquear</button>
+        <button type="button" onclick="abrirModalBloqueio()" class="btn-add-user" style="background: #dc3545; color: white;">🚫 Bloquear</button>
         <button type="button" onclick="abrirModalCadastro()" class="btn-add-user">+ Add Usuário</button>
         <button type="button" onclick="fazerLogout()" class="btn-sair">Sair</button>
       </div>
@@ -38,17 +42,17 @@
       <input type="date" id="filtroData">
     </div>
 
-    <h2 style="margin-top: 25px; font-size: 20px;">Agendamentos do Dia</h2>
+    <h2 style="margin-top: 25px; font-size: 18px;">Agendamentos do Dia</h2>
     <div id="listaAgendamentos"></div>
 
-    <h2 style="margin-top: 30px; font-size: 20px;">Horários Desmarcados / Cancelados</h2>
+    <h2 style="margin-top: 30px; font-size: 18px;">Horários Desmarcados / Cancelados</h2>
     <div id="listaCancelados"></div>
   </div>
 
   <!-- MODAL DE CADASTRO DE USUÁRIO -->
   <div id="modalCadastro" class="modal-overlay hidden">
     <div class="modal-card">
-      <h3 style="margin-top:0; margin-bottom: 15px; text-align: center;">👤 Cadastrar Novo Usuário</h3>
+      <h3 style="margin-top:0; margin-bottom: 15px; text-align: center; color: #e5c158;">👤 Cadastrar Novo Usuário</h3>
       <form onsubmit="cadastrarNovoUsuario(event)">
         <label style="margin-top:0;">Nome Completo:</label>
         <input type="text" id="novoNome" required>
@@ -70,7 +74,7 @@
   <!-- MODAL DE BLOQUEIO DE HORÁRIO -->
   <div id="modalBloqueio" class="modal-overlay hidden">
     <div class="modal-card">
-      <h3 style="margin-top:0; margin-bottom: 15px; text-align: center;">🚫 Bloquear Horário</h3>
+      <h3 style="margin-top:0; margin-bottom: 15px; text-align: center; color: #e5c158;">🚫 Bloquear Horário</h3>
       <form onsubmit="bloquearHorario(event)" style="display: flex; flex-direction: column; gap: 12px;">
         <div>
           <label style="display: block; margin-bottom: 4px; text-align: left;">Data:</label>
@@ -78,7 +82,7 @@
         </div>
 
         <div>
-          <button type="button" onclick="selecionarDiaTodo()" style="width: 100%; padding: 8px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold;">
+          <button type="button" onclick="selecionarDiaTodo()" style="width: 100%; padding: 10px; background-color: #333342; color: #e5c158; border: 1px solid #e5c158; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold;">
             📅 Selecionar Dia Todo (08:00 às 18:00)
           </button>
         </div>
@@ -123,7 +127,7 @@
         </div>
 
         <div style="display:flex; gap: 8px; margin-top: 10px;">
-          <button type="submit" class="btn-add-user" style="flex:1; padding: 10px; background-color: #dc3545;">Bloquear</button>
+          <button type="submit" class="btn-add-user" style="flex:1; padding: 10px; background: #dc3545; color: white;">Bloquear</button>
           <button type="button" onclick="fecharModalBloqueio()" class="btn-sair" style="flex:1; padding: 10px;">Cancelar</button>
         </div>
       </form>
