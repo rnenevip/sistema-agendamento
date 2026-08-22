@@ -47,12 +47,15 @@ async function carregarAgendamentos() {
       });
       const eBloqueio = item.cliente === 'BLOQUEADO';
       
+      // Converte o objeto item para texto para enviar com segurança à função
+      const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
+
       return `
         <div style="padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: ${eBloqueio ? '#ffe6e6' : '#e6f7ff'};">
           <strong>${hora}</strong> - ${item.cliente} (${item.servico})
           ${item.telefoneCliente && item.telefoneCliente !== 'N/A' ? `<br><small>📱 ${item.telefoneCliente}</small>` : ''}
           <div style="margin-top: 8px;">
-            <button type="button" onclick="desmarcarAgendamento('${item.id}', '${item.inicio}', '${item.cliente}')" class="btn btn-red" style="padding: 4px 8px; font-size: 12px; cursor: pointer;">❌ Desmarcar / Cancelar</button>
+            <button type="button" onclick="desmarcarAgendamento('${itemJson}')" class="btn btn-red" style="padding: 4px 8px; font-size: 12px; cursor: pointer;">❌ Desmarcar / Cancelar</button>
           </div>
         </div>
       `;
@@ -65,7 +68,15 @@ async function carregarAgendamentos() {
 }
 
 // Desmarcar / Cancelar Agendamento
-async function desmarcarAgendamento(id, inicio, nomeCliente) {
+async function desmarcarAgendamento(itemRaw) {
+  let item = {};
+  try {
+    item = typeof itemRaw === 'string' ? JSON.parse(itemRaw) : itemRaw;
+  } catch (e) {
+    item = {};
+  }
+
+  const nomeCliente = item.cliente || 'o cliente';
   const motivo = prompt(`Qual o motivo do cancelamento para ${nomeCliente}?`);
   
   if (motivo === null) return;
@@ -74,26 +85,46 @@ async function desmarcarAgendamento(id, inicio, nomeCliente) {
     return;
   }
 
+  const payload = {
+    id: item.id || item._id,
+    inicio: item.inicio,
+    dataHora: item.inicio,
+    cliente: item.cliente,
+    motivo: motivo
+  };
+
   try {
-    // Tenta cancelar pelo ID do agendamento ou enviando os dados de deleção
-    const url = id && id !== 'undefined' ? `${API_URL}/agendamentos/${id}` : `${API_URL}/agendamentos`;
-    
-    const res = await fetch(url, {
-      method: 'DELETE',
+    // Tentativa 1: Endpoint POST /cancelar
+    let res = await fetch(`${API_URL}/cancelar`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: id,
-        inicio: inicio,
-        motivo: motivo
-      })
+      body: JSON.stringify(payload)
     });
+
+    // Tentativa 2: Se falhar ou não existir, tenta POST /desmarcar
+    if (!res.ok) {
+      res = await fetch(`${API_URL}/desmarcar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    // Tentativa 3: Se falhar, tenta DELETE em /agendamentos/:id
+    if (!res.ok && payload.id) {
+      res = await fetch(`${API_URL}/agendamentos/${payload.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
 
     if (res.ok) {
       alert('✅ Horário desmarcado com sucesso!');
       carregarAgendamentos();
     } else {
       const result = await res.json().catch(() => ({}));
-      alert(`⚠️ ${result.message || result.error || 'Não foi possível desmarcar este horário.'}`);
+      alert(`⚠️ ${result.error || result.message || 'Não foi possível desmarcar este horário.'}`);
     }
   } catch (err) {
     console.error(err);
