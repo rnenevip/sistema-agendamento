@@ -4,36 +4,32 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-// Libera requisições de qualquer origem (Vercel, Localhost, etc.)
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-// Conexão com o MongoDB Atlas
 const MONGO_URI = 'mongodb+srv://admin:Rtk%2127082019@cluster0.czs3zas.mongodb.net/salao?retryWrites=true&w=majority';
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ Conectado ao MongoDB Atlas com sucesso!'))
   .catch(err => console.error('❌ Erro de conexão no MongoDB:', err));
 
-// Esquema/Modelo do Agendamento Atualizado
 const AgendamentoSchema = new mongoose.Schema({
   cliente: { type: String, required: true },
   telefoneCliente: { type: String, default: '' },
   servico: { type: String, required: true },
   observacao: { type: String, default: '' },
   inicio: { type: Date, required: true },
-  status: { type: String, default: 'ATIVO' }, // 'ATIVO' ou 'CANCELADO'
+  status: { type: String, default: 'ATIVO' },
   motivoCancelamento: { type: String, default: '' }
 });
 
 const Agendamento = mongoose.model('Agendamento', AgendamentoSchema);
 
-// Rota 1: Healthcheck
 app.get('/', (req, res) => {
   res.send('API do Salão rodando perfeitamente!');
 });
 
-// Rota 2: Buscar agendamentos de uma data específica
+// Buscar agendamentos do dia (ignora os cancelados)
 app.get('/agendamentos/ocupados', async (req, res) => {
   try {
     const { data } = req.query;
@@ -43,7 +39,8 @@ app.get('/agendamentos/ocupados', async (req, res) => {
     const fimDia = new Date(`${data}T23:59:59.999Z`);
 
     const agendamentos = await Agendamento.find({
-      inicio: { $gte: inicioDia, $lte: fimDia }
+      inicio: { $gte: inicioDia, $lte: fimDia },
+      status: { $ne: 'CANCELADO' }
     }).sort({ inicio: 1 });
 
     res.json(agendamentos);
@@ -53,18 +50,15 @@ app.get('/agendamentos/ocupados', async (req, res) => {
   }
 });
 
-// Rota 3: Criar novo agendamento
+// Criar agendamento
 app.post('/agendar', async (req, res) => {
   try {
     const { cliente, telefone, servico, observacao, dataHora } = req.body;
-
     if (!cliente || !servico || !dataHora) {
       return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
     }
 
     const dataAgendamento = new Date(dataHora);
-
-    // Checa conflito apenas com agendamentos ATIVOS
     const ocupado = await Agendamento.findOne({ inicio: dataAgendamento, status: { $ne: 'CANCELADO' } });
     if (ocupado) {
       return res.status(400).json({ error: 'Horário já reservado ou bloqueado' });
@@ -87,17 +81,13 @@ app.post('/agendar', async (req, res) => {
   }
 });
 
-// Rota 4: Bloquear Horários pelo Admin
+// Bloquear horário
 app.post('/bloquear', async (req, res) => {
   try {
     const { dataHora, motivo } = req.body;
-
-    if (!dataHora) {
-      return res.status(400).json({ error: 'Data e hora são obrigatórias' });
-    }
+    if (!dataHora) return res.status(400).json({ error: 'Data e hora são obrigatórias' });
 
     const dataBloqueio = new Date(dataHora);
-
     const ocupado = await Agendamento.findOne({ inicio: dataBloqueio, status: { $ne: 'CANCELADO' } });
     if (ocupado) {
       return res.status(400).json({ error: 'Horário já possui agendamento ou bloqueio' });
@@ -120,16 +110,20 @@ app.post('/bloquear', async (req, res) => {
   }
 });
 
-// Rota 5: Cancelar / Desmarcar Agendamento
-app.post('/cancelar', async (req, res) => {
+// Função auxiliar de cancelamento
+async function processarCancelamento(req, res) {
   try {
     const { id, inicio, motivo } = req.body;
+    const reqId = req.params.id || id;
 
     let agendamento = null;
-    if (id) {
-      agendamento = await Agendamento.findById(id);
-    } else if (inicio) {
-      agendamento = await Agendamento.findOne({ inicio: new Date(inicio), status: 'ATIVO' });
+
+    if (reqId && mongoose.Types.ObjectId.isValid(reqId)) {
+      agendamento = await Agendamento.findById(reqId);
+    }
+    
+    if (!agendamento && inicio) {
+      agendamento = await Agendamento.findOne({ inicio: new Date(inicio), status: { $ne: 'CANCELADO' } });
     }
 
     if (!agendamento) {
@@ -137,15 +131,20 @@ app.post('/cancelar', async (req, res) => {
     }
 
     agendamento.status = 'CANCELADO';
-    agendamento.motivoCancelamento = motivo || 'Não informado';
+    agendamento.motivoCancelamento = motivo || 'Cancelado pelo administrador';
     await agendamento.save();
 
-    res.json({ message: 'Horário desmarcado com sucesso!' });
+    return res.status(200).json({ message: 'Horário desmarcado com sucesso!' });
   } catch (err) {
-    console.error('Erro na rota POST /cancelar:', err);
-    res.status(500).json({ error: 'Erro interno ao cancelar agendamento' });
+    console.error('Erro ao cancelar:', err);
+    return res.status(500).json({ error: 'Erro interno ao cancelar agendamento' });
   }
-});
+}
+
+// Aceita o cancelamento via POST em /cancelar ou DELETE em /agendamentos/:id
+app.post('/cancelar', processarCancelamento);
+app.delete('/agendamentos/:id', processarCancelamento);
+app.delete('/agendamentos', processarCancelamento);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
