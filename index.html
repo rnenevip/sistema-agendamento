@@ -3,47 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agendamento - Salão de Beleza</title>
+  <title>Agendamento - Studio VT Hair</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h2>Agendar Horário</h2>
-    
-    <form id="formAgendamento">
-      <label for="cliente">Seu Nome:</label>
-      <input type="text" id="cliente" required placeholder="Digite seu nome">
 
-      <label for="telefone">WhatsApp (com DDD):</label>
-      <input type="tel" id="telefone" required placeholder="Ex: 16999998888">
+  <div class="container-login">
+    <!-- LOGO DOURADA VÍVIDA -->
+    <div class="logo-container">
+      <img src="logo.png" alt="Studio VT Hair Logo" class="logo-gold">
+    </div>
 
-      <label for="servico">Serviço Desejado:</label>
-      <select id="servico" required>
-        <option value="">Selecione...</option>
-        <option value="Corte">Corte (45 min)</option>
-        <option value="Escova">Escova (45 min)</option>
-        <option value="Tintura">Tintura (1h 20min)</option>
-        <option value="Plástica">Plástica (1h 30min)</option>
-        <option value="Mechas">Mechas (4h)</option>
-      </select>
+    <!-- CARD PRINCIPAL DE AGENDAMENTO -->
+    <div class="container">
+      <h2>✨ Agendar Horário</h2>
+      
+      <form id="formAgendamento">
+        <label for="cliente">Seu Nome:</label>
+        <input type="text" id="cliente" required placeholder="Digite seu nome">
 
-      <label for="observacao">Detalhes do Cabelo (Comprimento, química recente):</label>
-      <input type="text" id="observacao" placeholder="Ex: Cabelo longo, muito volumoso">
+        <label for="telefone">WhatsApp (com DDD):</label>
+        <input type="tel" id="telefone" required placeholder="Ex: 16999998888">
 
-      <label for="data">Data do Atendimento:</label>
-      <input type="date" id="data" required>
+        <label for="servico">Serviço Desejado:</label>
+        <select id="servico" required>
+          <option value="">Selecione...</option>
+          <option value="Corte">Corte (45 min)</option>
+          <option value="Escova">Escova (45 min)</option>
+          <option value="Tintura">Tintura (1h 20min)</option>
+          <option value="Plástica">Plástica (1h 30min)</option>
+          <option value="Mechas">Mechas (4h)</option>
+        </select>
 
-      <div id="secaoHorarios" class="hidden">
-        <label>Escolha um Horário Inicial:</label>
-        <div id="gridHorarios" class="grid-horarios"></div>
-      </div>
+        <label for="observacao">Detalhes do Cabelo (Comprimento, química recente):</label>
+        <input type="text" id="observacao" placeholder="Ex: Cabelo longo, muito volumoso">
 
-      <input type="hidden" id="horarioSelecionado">
+        <label for="data">Data do Atendimento:</label>
+        <input type="date" id="data" required>
 
-      <button type="submit" id="btnConfirmar" disabled>Solicitar Agendamento</button>
-    </form>
+        <div id="secaoHorarios" class="hidden">
+          <label>Escolha um Horário Inicial:</label>
+          <div id="gridHorarios" class="grid-horarios"></div>
+        </div>
 
-    <div id="mensagem" class="hidden"></div>
+        <input type="hidden" id="horarioSelecionado">
+
+        <button type="submit" id="btnConfirmar" disabled>Solicitar Agendamento</button>
+      </form>
+
+      <div id="mensagem" class="hidden"></div>
+    </div>
   </div>
 
   <script src="script.js"></script>
