@@ -6,14 +6,19 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* ANIMAÇÃO DE BRILHO CINTILANTE NO TEXTO */
+/* CLASSE PARA ESCONDER ELEMENTOS (REFORÇADA) */
+.hidden {
+  display: none !important;
+}
+
+/* ANIMAÇÃO DE BRILHO DOURADO */
 @keyframes brilhoDourado {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-/* CLASSE DE TEXTO DOURADO CINTILANTE METÁLICO */
+/* TEXTO DOURADO CINTILANTE METÁLICO */
 .texto-dourado-cintilante, h2, .titulo-studio, label strong {
   background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
   background-size: 200% auto;
@@ -23,7 +28,7 @@
   font-weight: bold;
 }
 
-/* BACKGROUND COM IMAGEM + FILTRO ESCURO */
+/* BACKGROUND COM FILTRO ESCURO */
 body {
   min-height: 100vh;
   background: 
@@ -36,16 +41,16 @@ body {
   color: #f1f1f1;
 }
 
-/* ESTRUTURA TELA LOGIN / ADMIN */
+/* ESTRUTURA TELA LOGIN */
 .container-login {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 450px;
+  max-width: 420px;
 }
 
-/* LOGO CIRCULAR DOURADA COM BORDA E SHADOW */
+/* LOGO CIRCULAR DOURADA */
 .logo-container {
   margin-bottom: 15px;
   text-align: center;
@@ -56,8 +61,8 @@ body {
 }
 
 .logo-gold {
-  width: 130px;
-  height: 130px;
+  width: 120px;
+  height: 120px;
   object-fit: cover;
   border-radius: 50%;
   border: 2px solid #f1c40f;
@@ -69,13 +74,6 @@ body {
   transform: scale(1.05);
 }
 
-.titulo-studio {
-  font-size: 24px;
-  letter-spacing: 1.5px;
-  margin-top: 8px;
-  text-transform: uppercase;
-}
-
 /* CONTAINER PRINCIPAL (CARD) */
 .container {
   background: rgba(22, 22, 28, 0.95);
@@ -84,6 +82,7 @@ body {
   border: 1px solid rgba(241, 196, 15, 0.3);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
   width: 100%;
+  max-width: 500px;
   backdrop-filter: blur(12px);
 }
 
@@ -121,89 +120,74 @@ input:focus, select:focus {
   box-shadow: 0 0 8px rgba(241, 196, 15, 0.4);
 }
 
-/* GRID DE HORÁRIOS */
-.grid-horarios {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.btn-horario {
-  padding: 12px 8px;
-  border: 1px solid #f1c40f;
-  background-color: rgba(241, 196, 15, 0.08);
-  color: #f1c40f;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-horario:hover:not(:disabled) {
-  background-color: #f1c40f;
-  color: #121216;
-}
-
-.btn-horario.selecionado {
-  background: linear-gradient(135deg, #f1c40f 0%, #b88e28 100%);
-  border-color: #f1c40f;
-  color: #121216;
-  box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
-}
-
-.btn-horario:disabled, .btn-horario.indisponivel {
-  background-color: rgba(220, 53, 69, 0.15) !important;
-  border-color: rgba(220, 53, 69, 0.4) !important;
-  color: #ff6b6b !important;
-  cursor: not-allowed !important;
-  opacity: 0.7;
-}
-
-/* BOTÃO CONFIRMAR E ENTRAR - DOURADO CINTILANTE */
+/* BOTÕES DOURADOS CINTILANTES */
 #btnConfirmar, button[type="submit"], .btn-add-user {
   width: 100%;
-  margin-top: 20px;
-  padding: 14px;
+  padding: 12px;
   background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
   background-size: 200% auto;
   animation: brilhoDourado 4s ease infinite;
   color: #121216;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s;
   box-shadow: 0 4px 15px rgba(179, 135, 40, 0.4);
 }
 
-#btnConfirmar:hover:not(:disabled), button[type="submit"]:hover {
+#btnConfirmar:hover, button[type="submit"]:hover {
   filter: brightness(1.15);
   transform: translateY(-1px);
 }
 
-#btnConfirmar:disabled {
-  background: #3a3a45;
-  color: #777;
-  cursor: not-allowed;
-  animation: none;
-  box-shadow: none;
+/* ESTRUTURA DO PAINEL ADMIN E TOPO */
+.topo-admin {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #333342;
+  gap: 10px;
 }
 
-/* PAINEL ADMIN E CARDS */
-.agendamento-card {
-  border: 1px solid #333342;
-  border-left: 4px solid #f1c40f;
-  border-radius: 10px;
-  padding: 15px;
-  margin-top: 12px;
-  background-color: #16161c;
+.botoes-topo {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.agendamento-info strong {
-  font-size: 16px;
-  color: #f1c40f;
+.botoes-topo .btn-add-user {
+  width: auto;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.btn-sair {
+  background-color: #333342;
+  color: #eee;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.btn-sair:hover {
+  background-color: #444456;
+}
+
+/* MODAIS - CENTRALIZADOS NA TELA */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
 }
 
 .modal-card {
@@ -213,4 +197,5 @@ input:focus, select:focus {
   border-radius: 12px;
   width: 90%;
   max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
 }
