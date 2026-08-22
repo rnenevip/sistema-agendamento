@@ -1,8 +1,9 @@
 // URL do backend hospedado no Render
 const API_URL = 'https://sistema-agendamento-8tlb.onrender.com';
 
-// NUMERO DO WHATSAPP DO SALÃO
-const TELEFONE_SALAO = '5516996422774'; 
+// NUMEROS DO WHATSAPP DO SALÃO (DOIS ATENDENTES)
+const TELEFONE_SALAO_1 = '5516996422774'; 
+const TELEFONE_SALAO_2 = '5516992685678'; 
 
 const selectServico = document.getElementById('servico');
 const inputData = document.getElementById('data');
@@ -172,18 +173,25 @@ if (form) {
           `⏰ *Horário:* ${horaFormatada}\n` +
           (observacao ? `📝 *Obs:* ${observacao}` : '');
 
-        const urlWhatsapp = `https://wa.me/${TELEFONE_SALAO}?text=${encodeURIComponent(textoMensagem)}`;
+        const urlWhatsapp1 = `https://wa.me/${TELEFONE_SALAO_1}?text=${encodeURIComponent(textoMensagem)}`;
+        const urlWhatsapp2 = `https://wa.me/${TELEFONE_SALAO_2}?text=${encodeURIComponent(textoMensagem)}`;
 
         mensagemDiv.innerHTML = `
           <p><strong>${dataRes.message || 'Agendamento criado com sucesso!'}</strong></p>
           <br>
           <button type="button" id="btnNotificarWhatsapp" style="display:inline-block; padding:12px 18px; background:#25D366; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:15px; width:100%;">
-             📲 Enviar Notificação no WhatsApp
+              📲 Enviar Notificação no WhatsApp
           </button>
         `;
 
         document.getElementById('btnNotificarWhatsapp').onclick = () => {
-          window.open(urlWhatsapp, '_blank');
+          // Abre a notificação para o primeiro número
+          window.open(urlWhatsapp1, '_blank');
+
+          // Abre a notificação para o segundo número em seguida
+          setTimeout(() => {
+            window.open(urlWhatsapp2, '_blank');
+          }, 500);
         };
 
         form.reset();
