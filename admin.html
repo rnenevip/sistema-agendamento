@@ -1,59 +1,135 @@
-<!-- MODAL DE BLOQUEIO DE HORÁRIO -->
-<div id="modalBloqueio" class="modal-overlay hidden">
-  <div class="modal-card">
-    <h3 style="margin-top:0; margin-bottom: 15px; text-align: center;">🚫 Bloquear Horário</h3>
-    <form onsubmit="bloquearHorario(event)">
-      <label style="margin-top:0;">Data:</label>
-      <input type="date" id="bloqueioData" required>
-      
-      <div style="margin-top: 10px; margin-bottom: 5px;">
-        <button type="button" onclick="selecionarDiaTodo()" style="width: 100%; padding: 6px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">
-          📅 Selecionar Dia Todo (08:00 às 18:00)
-        </button>
-      </div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-      <div style="display:flex; gap: 10px; margin-top: 10px;">
-        <div style="flex: 1;">
-          <label>Das:</label>
-          <select id="bloqueioHoraInicio" required>
-            <option value="08:00">08:00</option>
-            <option value="09:00">09:00</option>
-            <option value="10:00">10:00</option>
-            <option value="11:00">11:00</option>
-            <option value="13:00">13:00</option>
-            <option value="14:00">14:00</option>
-            <option value="15:00">15:00</option>
-            <option value="16:00">16:00</option>
-            <option value="17:00">17:00</option>
-            <option value="18:00">18:00</option>
-          </select>
-        </div>
-        
-        <div style="flex: 1;">
-          <label>Até às:</label>
-          <select id="bloqueioHoraFim" required>
-            <option value="08:00">08:00</option>
-            <option value="09:00">09:00</option>
-            <option value="10:00">10:00</option>
-            <option value="11:00">11:00</option>
-            <option value="12:00">12:00</option>
-            <option value="13:00">13:00</option>
-            <option value="14:00">14:00</option>
-            <option value="15:00">15:00</option>
-            <option value="16:00">16:00</option>
-            <option value="17:00">17:00</option>
-            <option value="18:00" selected>18:00</option>
-          </select>
-        </div>
-      </div>
+  <!-- TELA DE LOGIN -->
+  <div id="telaLogin" class="container">
+    <h2>🔐 Acesso ao Sistema</h2>
+    <form onsubmit="fazerLogin(event)">
+      <label>Usuário:</label>
+      <input type="text" id="loginUsuario" required>
       
-      <label style="margin-top: 10px;">Motivo:</label>
-      <input type="text" id="bloqueioMotivo" placeholder="Ex: Folga, Feriado, Impedição" required>
+      <label>Senha:</label>
+      <input type="password" id="loginSenha" required>
       
-      <div style="display:flex; gap: 8px; margin-top: 20px;">
-        <button type="submit" class="btn-add-user" style="flex:1; padding: 10px; background-color: #dc3545;">Bloquear</button>
-        <button type="button" onclick="fecharModalBloqueio()" class="btn-sair" style="flex:1; padding: 10px;">Cancelar</button>
-      </div>
+      <button type="submit" id="btnConfirmar" style="margin-top: 20px;">Entrar</button>
     </form>
   </div>
-</div>
+
+  <!-- TELA PRINCIPAL ADMIN -->
+  <div id="telaAdmin" class="container hidden">
+    <div class="topo-admin">
+      <h1 style="font-size: 24px; color: #333;">Painel</h1>
+      <div class="botoes-topo">
+        <button type="button" onclick="abrirModalBloqueio()" class="btn-add-user" style="background-color: #dc3545;">🚫 Bloquear</button>
+        <button type="button" onclick="abrirModalCadastro()" class="btn-add-user">+ Add Usuário</button>
+        <button type="button" onclick="fazerLogout()" class="btn-sair">Sair</button>
+      </div>
+    </div>
+
+    <div>
+      <label><strong>Selecione a Data de Consulta:</strong></label>
+      <input type="date" id="filtroData">
+    </div>
+
+    <h2 style="margin-top: 25px; font-size: 20px;">Agendamentos do Dia</h2>
+    <div id="listaAgendamentos"></div>
+
+    <h2 style="margin-top: 30px; font-size: 20px;">Horários Desmarcados / Cancelados</h2>
+    <div id="listaCancelados"></div>
+  </div>
+
+  <!-- MODAL DE CADASTRO DE USUÁRIO -->
+  <div id="modalCadastro" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 style="margin-top:0; margin-bottom: 15px; text-align: center;">👤 Cadastrar Novo Usuário</h3>
+      <form onsubmit="cadastrarNovoUsuario(event)">
+        <label style="margin-top:0;">Nome Completo:</label>
+        <input type="text" id="novoNome" required>
+        
+        <label>Usuário (Login):</label>
+        <input type="text" id="novoUsuario" required>
+        
+        <label>Senha:</label>
+        <input type="password" id="novaSenha" required>
+        
+        <div style="display:flex; gap: 8px; margin-top: 20px;">
+          <button type="submit" class="btn-add-user" style="flex:1; padding: 10px;">Salvar</button>
+          <button type="button" onclick="fecharModalCadastro()" class="btn-sair" style="flex:1; padding: 10px;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE BLOQUEIO DE HORÁRIO -->
+  <div id="modalBloqueio" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 style="margin-top:0; margin-bottom: 15px; text-align: center;">🚫 Bloquear Horário</h3>
+      <form onsubmit="bloquearHorario(event)" style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="display: block; margin-bottom: 4px; text-align: left;">Data:</label>
+          <input type="date" id="bloqueioData" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div>
+          <button type="button" onclick="selecionarDiaTodo()" style="width: 100%; padding: 8px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold;">
+            📅 Selecionar Dia Todo (08:00 às 18:00)
+          </button>
+        </div>
+
+        <div style="display:flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label style="display: block; margin-bottom: 4px; text-align: left;">Das:</label>
+            <select id="bloqueioHoraInicio" required style="width: 100%; box-sizing: border-box;">
+              <option value="08:00">08:00</option>
+              <option value="09:00">09:00</option>
+              <option value="10:00">10:00</option>
+              <option value="11:00">11:00</option>
+              <option value="13:00">13:00</option>
+              <option value="14:00">14:00</option>
+              <option value="15:00">15:00</option>
+              <option value="16:00">16:00</option>
+              <option value="17:00">17:00</option>
+              <option value="18:00">18:00</option>
+            </select>
+          </div>
+          
+          <div style="flex: 1;">
+            <label style="display: block; margin-bottom: 4px; text-align: left;">Até às:</label>
+            <select id="bloqueioHoraFim" required style="width: 100%; box-sizing: border-box;">
+              <option value="09:00">09:00</option>
+              <option value="10:00">10:00</option>
+              <option value="11:00">11:00</option>
+              <option value="12:00">12:00</option>
+              <option value="14:00">14:00</option>
+              <option value="15:00">15:00</option>
+              <option value="16:00">16:00</option>
+              <option value="17:00">17:00</option>
+              <option value="18:00">18:00</option>
+              <option value="19:00" selected>19:00</option>
+            </select>
+          </div>
+        </div>
+        
+        <div>
+          <label style="display: block; margin-bottom: 4px; text-align: left;">Motivo:</label>
+          <input type="text" id="bloqueioMotivo" placeholder="Ex: Folga, Feriado, Almoço" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div style="display:flex; gap: 8px; margin-top: 10px;">
+          <button type="submit" class="btn-add-user" style="flex:1; padding: 10px; background-color: #dc3545;">Bloquear</button>
+          <button type="button" onclick="fecharModalBloqueio()" class="btn-sair" style="flex:1; padding: 10px;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
