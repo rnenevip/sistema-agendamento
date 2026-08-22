@@ -1,5 +1,103 @@
 const API_URL = 'https://sistema-agendamento-8tlb.onrender.com';
 
+// Verifica sessão ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+  const usuarioLogado = sessionStorage.getItem('usuarioLogado');
+  if (usuarioLogado) {
+    exibirPainelAdmin();
+  } else {
+    exibirLogin();
+  }
+
+  const filtroData = document.getElementById('filtroData');
+  if (filtroData) {
+    filtroData.addEventListener('change', carregarAgendamentos);
+  }
+});
+
+function exibirLogin() {
+  document.getElementById('telaLogin').classList.remove('hidden');
+  document.getElementById('telaAdmin').classList.add('hidden');
+}
+
+function exibirPainelAdmin() {
+  document.getElementById('telaLogin').classList.add('hidden');
+  document.getElementById('telaAdmin').classList.remove('hidden');
+  carregarAgendamentos();
+}
+
+// Login
+async function fazerLogin(event) {
+  event.preventDefault();
+  const usuario = document.getElementById('loginUsuario').value.trim();
+  const senha = document.getElementById('loginSenha').value.trim();
+
+  try {
+    const res = await fetch(`${API_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, senha })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      sessionStorage.setItem('usuarioLogado', JSON.stringify(data));
+      exibirPainelAdmin();
+    } else {
+      alert(`⚠️ ${data.error || 'Erro ao realizar login.'}`);
+    }
+  } catch (err) {
+    alert('❌ Erro ao conectar com o servidor.');
+  }
+}
+
+// Logout
+function fazerLogout() {
+  sessionStorage.removeItem('usuarioLogado');
+  exibirLogin();
+}
+
+// Controle do Modal de Cadastro de Usuário
+function abrirModalCadastro() {
+  document.getElementById('modalCadastro').classList.remove('hidden');
+}
+
+function fecharModalCadastro() {
+  document.getElementById('modalCadastro').classList.add('hidden');
+  document.getElementById('novoNome').value = '';
+  document.getElementById('novoUsuario').value = '';
+  document.getElementById('novaSenha').value = '';
+}
+
+// Cadastrar Novo Usuário (Acionado apenas dentro do Admin)
+async function cadastrarNovoUsuario(event) {
+  event.preventDefault();
+  const nome = document.getElementById('novoNome').value.trim();
+  const usuario = document.getElementById('novoUsuario').value.trim();
+  const senha = document.getElementById('novaSenha').value.trim();
+
+  try {
+    const res = await fetch(`${API_URL}/usuarios`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, usuario, senha })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert('✅ Usuário cadastrado com sucesso!');
+      fecharModalCadastro();
+    } else {
+      alert(`⚠️ ${data.error || 'Erro ao cadastrar usuário.'}`);
+    }
+  } catch (err) {
+    alert('❌ Erro de conexão com o servidor.');
+  }
+}
+
+// Manipulação de Datas
 function setHoje() {
   const hoje = new Date();
   const ano = hoje.getFullYear();
@@ -8,14 +106,10 @@ function setHoje() {
   const dataFormatada = `${ano}-${mes}-${dia}`;
   
   const filtroData = document.getElementById('filtroData');
-  const dataBloqueio = document.getElementById('dataBloqueio');
-  const manualData = document.getElementById('manualData');
-
   if (filtroData && !filtroData.value) filtroData.value = dataFormatada;
-  if (dataBloqueio && !dataBloqueio.value) dataBloqueio.value = dataFormatada;
-  if (manualData && !manualData.value) manualData.value = dataFormatada;
 }
 
+// Carregar Agendamentos
 async function carregarAgendamentos() {
   setHoje();
   const filtroData = document.getElementById('filtroData');
@@ -25,83 +119,52 @@ async function carregarAgendamentos() {
   if (!filtroData || !listaAgendamentos) return;
   const dataSelecionada = filtroData.value;
 
-  listaAgendamentos.innerHTML = '<p>Carregando agendamentos...</p>';
-  if (listaCancelados) listaCancelados.innerHTML = '<p>Carregando cancelados...</p>';
+  listaAgendamentos.innerHTML = '<p>Carregando...</p>';
 
   try {
     const res = await fetch(`${API_URL}/agendamentos/ocupados?data=${dataSelecionada}`);
-    if (!res.ok) throw new Error('Erro na requisição');
-    
     const agendamentos = await res.json();
 
     if (!Array.isArray(agendamentos) || agendamentos.length === 0) {
-      listaAgendamentos.innerHTML = '<p>Nenhum agendamento ou bloqueio nesta data.</p>';
-      if (listaCancelados) listaCancelados.innerHTML = '<p>Nenhum horário desmarcado nesta data.</p>';
+      listaAgendamentos.innerHTML = '<p>Nenhum agendamento nesta data.</p>';
+      if (listaCancelados) listaCancelados.innerHTML = '<p>Nenhum horário desmarcado.</p>';
       return;
     }
 
     const ativos = agendamentos.filter(item => item.status !== 'CANCELADO');
     const cancelados = agendamentos.filter(item => item.status === 'CANCELADO');
 
-    // Agendamentos Ativos
-    if (ativos.length === 0) {
-      listaAgendamentos.innerHTML = '<p>Nenhum agendamento ativo nesta data.</p>';
-    } else {
-      listaAgendamentos.innerHTML = ativos.map(item => {
-        const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { 
-          hour: '2-digit', 
-          minute: '2-digit', 
-          timeZone: 'UTC' 
-        });
-        const eBloqueio = item.cliente === 'BLOQUEADO';
-        
+    listaAgendamentos.innerHTML = ativos.length === 0 ? '<p>Nenhum agendamento ativo.</p>' : ativos.map(item => {
+      const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+      return `
+        <div style="padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px;">
+          <strong>${hora}</strong> - ${item.cliente} (${item.servico})
+          <button type="button" onclick="desmarcarAgendamento('${item._id}', '${item.inicio}', '${item.cliente}')" class="btn-red" style="margin-top: 5px;">❌ Cancelar</button>
+        </div>
+      `;
+    }).join('');
+
+    if (listaCancelados) {
+      listaCancelados.innerHTML = cancelados.length === 0 ? '<p>Nenhum horário desmarcado.</p>' : cancelados.map(item => {
+        const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
         return `
-          <div style="padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: ${eBloqueio ? '#ffe6e6' : '#e6f7ff'};">
+          <div style="padding: 10px; margin-bottom: 8px; border: 1px solid #ffcccc; background-color: #fff0f0;">
             <strong>${hora}</strong> - ${item.cliente} (${item.servico})
-            ${item.telefoneCliente && item.telefoneCliente !== 'N/A' ? `<br><small>📱 ${item.telefoneCliente}</small>` : ''}
-            <div style="margin-top: 8px;">
-              <button type="button" onclick="desmarcarAgendamento('${item._id || item.id}', '${item.inicio}', '${item.cliente}')" class="btn btn-red" style="padding: 4px 8px; font-size: 12px; cursor: pointer;">❌ Desmarcar / Cancelar</button>
-            </div>
+            <br><small style="color: #c9302c;">Motivo: ${item.motivoCancelamento || 'Não informado'}</small>
           </div>
         `;
       }).join('');
     }
 
-    // Cancelados / Desmarcados
-    if (listaCancelados) {
-      if (cancelados.length === 0) {
-        listaCancelados.innerHTML = '<p>Nenhum horário desmarcado nesta data.</p>';
-      } else {
-        listaCancelados.innerHTML = cancelados.map(item => {
-          const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            timeZone: 'UTC' 
-          });
-          return `
-            <div style="padding: 10px; margin-bottom: 8px; border: 1px solid #ffcccc; border-radius: 6px; background-color: #fff0f0;">
-              <strong>${hora}</strong> - ${item.cliente} (${item.servico})
-              <br><small style="color: #c9302c;"><strong>Motivo do Cancelamento:</strong> ${item.motivoCancelamento || 'Não informado'}</small>
-            </div>
-          `;
-        }).join('');
-      }
-    }
-
   } catch (err) {
-    console.error(err);
-    listaAgendamentos.innerHTML = '<p style="color:red; font-weight:bold;">Erro ao carregar dados do servidor.</p>';
+    listaAgendamentos.innerHTML = '<p style="color:red;">Erro ao carregar dados.</p>';
   }
 }
 
+// Desmarcar Agendamento
 async function desmarcarAgendamento(id, inicio, nomeCliente) {
-  const motivo = prompt(`Qual o motivo do cancelamento para ${nomeCliente}?`);
-  
-  if (motivo === null) return;
-  if (!motivo.trim()) {
-    alert('Por favor, informe o motivo do cancelamento.');
-    return;
-  }
+  const motivo = prompt(`Motivo do cancelamento para ${nomeCliente}?`);
+  if (!motivo) return;
 
   try {
     const res = await fetch(`${API_URL}/cancelar`, {
@@ -111,102 +174,12 @@ async function desmarcarAgendamento(id, inicio, nomeCliente) {
     });
 
     if (res.ok) {
-      alert('✅ Horário desmarcado com sucesso!');
+      alert('✅ Desmarcado com sucesso!');
       carregarAgendamentos();
     } else {
-      const result = await res.json().catch(() => ({}));
-      alert(`⚠️ ${result.error || 'Não foi possível desmarcar este horário.'}`);
+      alert('⚠️ Erro ao desmarcar.');
     }
   } catch (err) {
-    console.error(err);
-    alert('❌ Erro de conexão com o servidor ao desmarcar.');
+    alert('❌ Erro de conexão.');
   }
 }
-
-async function bloquearHorario() {
-  const dataBloqueio = document.getElementById('dataBloqueio');
-  const horaInicioBloqueio = document.getElementById('horaInicioBloqueio');
-
-  const data = dataBloqueio ? dataBloqueio.value : '';
-  const hora = horaInicioBloqueio ? horaInicioBloqueio.value : '08:00';
-
-  if (!data) {
-    alert('Selecione uma data para realizar o bloqueio.');
-    return;
-  }
-
-  const dataHoraISO = `${data}T${hora}:00.000Z`;
-
-  try {
-    const res = await fetch(`${API_URL}/bloquear`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        dataHora: dataHoraISO,
-        motivo: 'Pausa/Bloqueio'
-      })
-    });
-
-    const result = await res.json();
-
-    if (res.ok) {
-      alert('✅ Horário bloqueado com sucesso!');
-      carregarAgendamentos();
-    } else {
-      alert(`⚠️ ${result.error || 'Não foi possível bloquear este horário.'}`);
-    }
-  } catch (err) {
-    console.error(err);
-    alert('❌ Erro de conexão com o servidor.');
-  }
-}
-
-async function agendarManual() {
-  const cliente = document.getElementById('manualCliente')?.value.trim();
-  const telefone = document.getElementById('manualTelefone')?.value.trim();
-  const servico = document.getElementById('manualServico')?.value;
-  const data = document.getElementById('manualData')?.value;
-  const hora = document.getElementById('manualHoraInicio')?.value;
-
-  if (!cliente || !data) {
-    alert('Preencha o nome do cliente e a data.');
-    return;
-  }
-
-  const dataHoraISO = `${data}T${hora}:00.000Z`;
-
-  try {
-    const res = await fetch(`${API_URL}/agendar`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cliente,
-        telefone: telefone || 'Não informado',
-        servico,
-        dataHora: dataHoraISO
-      })
-    });
-
-    const result = await res.json();
-
-    if (res.ok) {
-      alert('✅ Agendamento realizado com sucesso!');
-      document.getElementById('manualCliente').value = '';
-      document.getElementById('manualTelefone').value = '';
-      carregarAgendamentos();
-    } else {
-      alert(`⚠️ ${result.error || 'Não foi possível agendar.'}`);
-    }
-  } catch (err) {
-    console.error(err);
-    alert('❌ Erro de conexão com o servidor.');
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const filtroData = document.getElementById('filtroData');
-  if (filtroData) {
-    filtroData.addEventListener('change', carregarAgendamentos);
-  }
-  carregarAgendamentos();
-});
