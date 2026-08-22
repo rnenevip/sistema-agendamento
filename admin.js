@@ -1,5 +1,10 @@
 const API_URL = 'https://sistema-agendamento-8tlb.onrender.com';
 
+const HORARIOS_DIA = [
+  "08:00", "09:00", "10:00", "11:00", 
+  "13:00", "14:00", "15:00", "16:00", "17:00"
+];
+
 document.addEventListener('DOMContentLoaded', () => {
   const usuarioLogado = sessionStorage.getItem('usuarioLogado');
   if (usuarioLogado) {
@@ -11,6 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const filtroData = document.getElementById('filtroData');
   if (filtroData) {
     filtroData.addEventListener('change', carregarAgendamentos);
+  }
+
+  // Event Listeners para o agendamento manual no Admin
+  const adminServico = document.getElementById('adminServico');
+  const adminData = document.getElementById('adminData');
+
+  if (adminServico && adminData) {
+    adminServico.addEventListener('change', carregarHorariosAdmin);
+    adminData.addEventListener('change', carregarHorariosAdmin);
+    adminData.addEventListener('input', carregarHorariosAdmin);
   }
 });
 
@@ -53,6 +68,161 @@ async function fazerLogin(event) {
 function fazerLogout() {
   sessionStorage.removeItem('usuarioLogado');
   exibirLogin();
+}
+
+/* --- MODAL AGENDAMENTO MANUAL ADMIN --- */
+function abrirModalAgendamentoAdmin() {
+  document.getElementById('modalAgendamentoAdmin').classList.remove('hidden');
+  const filtroData = document.getElementById('filtroData');
+  if (filtroData && filtroData.value) {
+    document.getElementById('adminData').value = filtroData.value;
+  }
+  carregarHorariosAdmin();
+}
+
+function fecharModalAgendamentoAdmin() {
+  document.getElementById('modalAgendamentoAdmin').classList.add('hidden');
+  document.getElementById('adminCliente').value = '';
+  document.getElementById('adminTelefone').value = '';
+  document.getElementById('adminServico').value = '';
+  document.getElementById('adminObservacao').value = '';
+  document.getElementById('adminHorarioSelecionado').value = '';
+  document.getElementById('adminSecaoHorarios').classList.add('hidden');
+  document.getElementById('adminBtnConfirmar').disabled = true;
+}
+
+async function carregarHorariosAdmin() {
+  const servico = document.getElementById('adminServico').value;
+  const data = document.getElementById('adminData').value;
+  const adminSecaoHorarios = document.getElementById('adminSecaoHorarios');
+  const adminGridHorarios = document.getElementById('adminGridHorarios');
+  const adminBtnConfirmar = document.getElementById('adminBtnConfirmar');
+  const adminHorarioSelecionado = document.getElementById('adminHorarioSelecionado');
+
+  if (!servico || !data) {
+    if (adminSecaoHorarios) adminSecaoHorarios.classList.add('hidden');
+    return;
+  }
+
+  try {
+    let ocupados = [];
+    try {
+      const resOcupados = await fetch(`${API_URL}/agendamentos/ocupados?data=${data}`);
+      if (resOcupados.ok) {
+        ocupados = await resOcupados.json();
+      }
+    } catch (e) {
+      console.warn("Erro ao buscar agendamentos ocupados no Admin.");
+    }
+
+    const servicoLower = servico.toLowerCase();
+    let duracaoNovo = 60;
+
+    if (servicoLower.includes('mecha')) {
+      duracaoNovo = 240;
+    } else if (servicoLower.includes('tintura')) {
+      duracaoNovo = 80;
+    } else if (servicoLower.includes('plastica') || servicoLower.includes('plástica')) {
+      duracaoNovo = 90;
+    } else if (servicoLower.includes('corte') || servicoLower.includes('escova')) {
+      duracaoNovo = 45;
+    }
+
+    adminGridHorarios.innerHTML = '';
+    adminSecaoHorarios.classList.remove('hidden');
+    adminBtnConfirmar.disabled = true;
+    adminHorarioSelecionado.value = '';
+
+    const horariosInicioOcupados = Array.isArray(ocupados) 
+      ? ocupados.map(ag => {
+          if (!ag) return null;
+          const rawInicio = ag.inicio || ag.dataHora || (typeof ag === 'string' ? ag : '');
+          if (!rawInicio) return null;
+          const match = rawInicio.match(/(\d{2}):(\d{2})/);
+          return match ? `${match[1]}:${match[2]}` : null;
+        }).filter(Boolean)
+      : [];
+
+    HORARIOS_DIA.forEach(hora => {
+      const [h, m] = hora.split(':').map(Number);
+      const inicioNovoMin = h * 60 + m;
+      const fimNovoMin = inicioNovoMin + duracaoNovo;
+
+      let temConflito = horariosInicioOcupados.includes(hora);
+
+      const LIMITE_EXPEDIENTE_MIN = 18 * 60;
+      if (fimNovoMin > LIMITE_EXPEDIENTE_MIN) {
+        temConflito = true;
+      }
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-horario';
+      btn.textContent = hora;
+
+      if (temConflito) {
+        btn.disabled = true;
+        btn.classList.add('indisponivel');
+      } else {
+        btn.onclick = () => {
+          document.querySelectorAll('#adminGridHorarios .btn-horario').forEach(b => {
+            if (!b.disabled) b.classList.remove('selecionado');
+          });
+          
+          btn.classList.add('selecionado');
+          adminHorarioSelecionado.value = `${data}T${hora}:00`;
+          adminBtnConfirmar.disabled = false;
+        };
+      }
+
+      adminGridHorarios.appendChild(btn);
+    });
+
+  } catch (err) {
+    console.error("Erro ao carregar horários no Admin:", err);
+  }
+}
+
+async function salvarAgendamentoAdmin(event) {
+  event.preventDefault();
+
+  const cliente = document.getElementById('adminCliente').value.trim();
+  const telefone = document.getElementById('adminTelefone').value.trim();
+  const servico = document.getElementById('adminServico').value;
+  const observacao = document.getElementById('adminObservacao').value.trim();
+  const dataHora = document.getElementById('adminHorarioSelecionado').value;
+
+  if (!dataHora) {
+    alert("Por favor, selecione um horário disponível.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/agendar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cliente, telefone, servico, observacao, dataHora })
+    });
+
+    const dataRes = await response.json();
+
+    if (response.ok) {
+      alert("✅ Agendamento realizado com sucesso!");
+      fecharModalAgendamentoAdmin();
+      
+      // Sincroniza a data do filtro com a data do novo agendamento e recarrega
+      const dataApenas = dataHora.split('T')[0];
+      const filtroData = document.getElementById('filtroData');
+      if (filtroData) filtroData.value = dataApenas;
+      
+      carregarAgendamentos();
+    } else {
+      alert(`⚠️ ${dataRes.message || 'Este horário não está disponível.'}`);
+      carregarHorariosAdmin();
+    }
+  } catch (error) {
+    alert("❌ Erro ao conectar com o servidor.");
+  }
 }
 
 /* --- MODAL CADASTRO --- */
@@ -216,7 +386,7 @@ async function carregarAgendamentos() {
             <strong>${hora}</strong> - ${item.cliente} ${isBloqueio ? `(${item.servico})` : `(${item.servico})`}
             ${item.telefoneCliente && !isBloqueio ? `<br><small>📱 ${item.telefoneCliente}</small>` : ''}
           </div>
-          <button type="button" onclick="desmarcarAgendamento('${item._id}', '${item.inicio}', '${item.cliente}')" class="btn-desmarcar">
+          <button type="button" onclick="desmarcarAgendamento('${item._id}', '${item.inicio}', '${item.cliente}')" class="btn-cancelar">
             ✖ ${isBloqueio ? 'Desbloquear / Remover' : 'Desmarcar / Cancelar'}
           </button>
         </div>

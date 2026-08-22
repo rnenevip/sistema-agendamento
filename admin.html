@@ -37,6 +37,7 @@
     <div class="topo-admin">
       <h1 class="texto-dourado-cintilante" style="font-size: 20px;">Painel VT Hair</h1>
       <div class="botoes-topo">
+        <button type="button" onclick="abrirModalAgendamentoAdmin()" class="btn-add-user" style="background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%); color: #121216;">+ Agendar Cliente</button>
         <button type="button" onclick="abrirModalBloqueio()" class="btn-add-user" style="background: #dc3545; color: white;">🚫 Bloquear</button>
         <button type="button" onclick="abrirModalCadastro()" class="btn-add-user">+ Add Usuário</button>
         <button type="button" onclick="fazerLogout()" class="btn-sair">Sair</button>
@@ -53,6 +54,49 @@
 
     <h2 class="texto-dourado-cintilante" style="margin-top: 30px; font-size: 18px;">Horários Desmarcados / Cancelados</h2>
     <div id="listaCancelados"></div>
+  </div>
+
+  <!-- MODAL DE AGENDAMENTO MANUAL (ADMIN) -->
+  <div id="modalAgendamentoAdmin" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 480px; max-height: 90vh; overflow-y: auto;">
+      <h3 class="texto-dourado-cintilante" style="margin-top:0; margin-bottom: 15px; text-align: center;">📅 Agendar Cliente Manualmente</h3>
+      <form id="formAgendamentoAdmin" onsubmit="salvarAgendamentoAdmin(event)">
+        <label style="margin-top:0;">Nome do Cliente:</label>
+        <input type="text" id="adminCliente" required placeholder="Digite o nome completo">
+
+        <label>Telefone / WhatsApp:</label>
+        <input type="tel" id="adminTelefone" required placeholder="(16) 99999-9999">
+
+        <label>Serviço Desejado:</label>
+        <select id="adminServico" required>
+          <option value="">Selecione um serviço...</option>
+          <option value="Mechas (4h)">Mechas (4h)</option>
+          <option value="Tintura / Coloração (1h20)">Tintura / Coloração (1h20)</option>
+          <option value="Plástica dos Fios / Selagem (1h30)">Plástica dos Fios / Selagem (1h30)</option>
+          <option value="Corte Feminino (45 min)">Corte Feminino (45 min)</option>
+          <option value="Escova / Modelagem (45 min)">Escova / Modelagem (45 min)</option>
+          <option value="Tratamento Capilar (1h)">Tratamento Capilar (1h)</option>
+        </select>
+
+        <label>Detalhes / Observações:</label>
+        <input type="text" id="adminObservacao" placeholder="Ex: Cabelo longo, produto específico">
+
+        <label>Data do Atendimento:</label>
+        <input type="date" id="adminData" required>
+
+        <div id="adminSecaoHorarios" class="hidden">
+          <label style="margin-top: 15px;">Escolha um Horário Inicial:</label>
+          <div id="adminGridHorarios" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px;"></div>
+        </div>
+
+        <input type="hidden" id="adminHorarioSelecionado">
+
+        <div style="display:flex; gap: 8px; margin-top: 20px;">
+          <button type="submit" id="adminBtnConfirmar" class="btn-add-user" style="flex:1; padding: 10px;" disabled>Confirmar Agendamento</button>
+          <button type="button" onclick="fecharModalAgendamentoAdmin()" class="btn-sair" style="flex:1; padding: 10px;">Cancelar</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- MODAL DE CADASTRO DE USUÁRIO -->
