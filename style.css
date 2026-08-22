@@ -219,3 +219,29 @@ input:focus, select:focus {
   max-width: 400px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.8);
 }
+
+/* FORÇA O ESTILO BONITO EM QUALQUER BOTÃO DENTRO DOS CARDS DE AGENDAMENTO */
+#listaAgendamentos button, 
+#listaCancelados button,
+.btn-cancelar {
+  background-color: rgba(220, 53, 69, 0.2) !important;
+  color: #ff6b6b !important;
+  border: 1px solid #dc3545 !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  margin-top: 8px !important;
+  width: auto !important;
+  display: inline-block !important;
+  transition: all 0.2s ease !important;
+}
+
+#listaAgendamentos button:hover, 
+#listaCancelados button:hover,
+.btn-cancelar:hover {
+  background-color: #dc3545 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(220, 53, 69, 0.5) !important;
+}
