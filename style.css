@@ -6,11 +6,11 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* BACKGROUND COM IMAGEM ESTILO MECHAS/SALÃO + FILTRO ESCURO */
+/* BACKGROUND COM IMAGEM ESTILO MECHAS/SALÃO + FILTRO ESCURO UNIFICADO */
 body {
   min-height: 100vh;
   background: 
-    linear-gradient(rgba(15, 15, 18, 0.85), rgba(15, 15, 18, 0.90)),
+    linear-gradient(rgba(15, 15, 18, 0.88), rgba(15, 15, 18, 0.92)),
     url('https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat fixed;
   display: flex;
   justify-content: center;
@@ -28,16 +28,22 @@ body {
   max-width: 450px;
 }
 
-/* LOGO DOURADA VÍVIDA & TÍTULO DO STUDIO */
+/* LOGO DOURADA VÍVIDA & INTEGRADA AO TOM DE FUNDO */
 .logo-container {
   margin-bottom: 15px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .logo-gold {
   max-width: 160px;
   height: auto;
-  filter: brightness(1.3) contrast(1.2) saturate(1.8) drop-shadow(0 0 12px rgba(241, 196, 15, 0.6));
+  /* Blend mode garante que qualquer quadrado de fundo da logo se funda ao tema escuro */
+  mix-blend-mode: lighten;
+  filter: brightness(1.2) contrast(1.1) saturate(1.5) drop-shadow(0 0 10px rgba(241, 196, 15, 0.5));
   transition: transform 0.3s ease;
 }
 
@@ -55,15 +61,15 @@ body {
   text-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
 }
 
-/* CONTAINER PRINCIPAL (CARD) */
+/* CONTAINER PRINCIPAL (CARD) - NO MESMO TOM DO CONJUNTO */
 .container {
   background: rgba(22, 22, 28, 0.95);
   padding: 30px;
   border-radius: 16px;
   border: 1px solid rgba(241, 196, 15, 0.3);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
   width: 100%;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
 }
 
 h2 {
@@ -73,7 +79,7 @@ h2 {
   font-size: 20px;
 }
 
-/* FORMULÁRIOS & CAMPOS */
+/* FORMULÁRIOS & CAMPOS - REFORÇO NO TOM ESCURO DE ENTRADA */
 label {
   display: block;
   margin-top: 15px;
@@ -92,7 +98,7 @@ input, select {
   font-size: 14px;
   color: #fff;
   outline: none;
-  transition: border-color 0.3s;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 input:focus, select:focus {
@@ -198,7 +204,7 @@ input:focus, select:focus {
   border-radius: 10px;
   padding: 15px;
   margin-top: 12px;
-  background-color: #22222a;
+  background-color: #16161c;
 }
 
 .agendamento-info {
@@ -241,19 +247,19 @@ input:focus, select:focus {
   border-left-color: #dc3545;
 }
 
-/* MODAIS */
+/* MODAIS - TOM HARMONIZADO (#16161c) */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(5px);
   display: flex; align-items: center; justify-content: center;
   z-index: 9999;
 }
 
 .modal-card {
-  background: #1c1c23;
-  border: 1px solid #3d3d4a;
+  background: #16161c;
+  border: 1px solid rgba(241, 196, 15, 0.3);
   padding: 25px;
   border-radius: 12px;
   width: 90%;
