@@ -6,7 +6,24 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* BACKGROUND COM IMAGEM ESTILO MECHAS/SALÃO + FILTRO ESCURO UNIFICADO */
+/* ANIMAÇÃO DE BRILHO CINTILANTE NO TEXTO */
+@keyframes brilhoDourado {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* CLASSE DE TEXTO DOURADO CINTILANTE METÁLICO */
+.texto-dourado-cintilante, h2, .titulo-studio, label strong {
+  background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: brilhoDourado 4s ease infinite;
+  font-weight: bold;
+}
+
+/* BACKGROUND COM IMAGEM + FILTRO ESCURO */
 body {
   min-height: 100vh;
   background: 
@@ -19,7 +36,7 @@ body {
   color: #f1f1f1;
 }
 
-/* ESTRUTURA TELA LOGIN COM LOGO NO TOPO */
+/* ESTRUTURA TELA LOGIN / ADMIN */
 .container-login {
   display: flex;
   flex-direction: column;
@@ -28,7 +45,7 @@ body {
   max-width: 450px;
 }
 
-/* LOGO DOURADA ARREDONDADA COM BORDA E BRILHO */
+/* LOGO CIRCULAR DOURADA COM BORDA E SHADOW */
 .logo-container {
   margin-bottom: 15px;
   text-align: center;
@@ -44,7 +61,7 @@ body {
   object-fit: cover;
   border-radius: 50%;
   border: 2px solid #f1c40f;
-  box-shadow: 0 0 15px rgba(241, 196, 15, 0.5);
+  box-shadow: 0 0 20px rgba(241, 196, 15, 0.6);
   transition: transform 0.3s ease;
 }
 
@@ -53,16 +70,13 @@ body {
 }
 
 .titulo-studio {
-  color: #f1c40f;
   font-size: 24px;
-  font-weight: 700;
   letter-spacing: 1.5px;
   margin-top: 8px;
   text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
 }
 
-/* CONTAINER PRINCIPAL (CARD) - NO MESMO TOM DO CONJUNTO */
+/* CONTAINER PRINCIPAL (CARD) */
 .container {
   background: rgba(22, 22, 28, 0.95);
   padding: 30px;
@@ -75,12 +89,11 @@ body {
 
 h2 {
   margin-bottom: 20px;
-  color: #f1c40f;
   text-align: center;
   font-size: 20px;
 }
 
-/* FORMULÁRIOS & CAMPOS - REFORÇO NO TOM ESCURO DE ENTRADA */
+/* FORMULÁRIOS & CAMPOS */
 label {
   display: block;
   margin-top: 15px;
@@ -133,7 +146,7 @@ input:focus, select:focus {
 }
 
 .btn-horario.selecionado {
-  background-color: #f1c40f;
+  background: linear-gradient(135deg, #f1c40f 0%, #b88e28 100%);
   border-color: #f1c40f;
   color: #121216;
   box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
@@ -147,12 +160,14 @@ input:focus, select:focus {
   opacity: 0.7;
 }
 
-/* BOTÃO CONFIRMAR E AÇÕES */
-#btnConfirmar {
+/* BOTÃO CONFIRMAR E ENTRAR - DOURADO CINTILANTE */
+#btnConfirmar, button[type="submit"], .btn-add-user {
   width: 100%;
   margin-top: 20px;
   padding: 14px;
-  background: linear-gradient(135deg, #f1c40f 0%, #b88e28 100%);
+  background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+  background-size: 200% auto;
+  animation: brilhoDourado 4s ease infinite;
   color: #121216;
   border: none;
   border-radius: 8px;
@@ -160,9 +175,10 @@ input:focus, select:focus {
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(179, 135, 40, 0.4);
 }
 
-#btnConfirmar:hover:not(:disabled) {
+#btnConfirmar:hover:not(:disabled), button[type="submit"]:hover {
   filter: brightness(1.15);
   transform: translateY(-1px);
 }
@@ -171,34 +187,11 @@ input:focus, select:focus {
   background: #3a3a45;
   color: #777;
   cursor: not-allowed;
+  animation: none;
+  box-shadow: none;
 }
 
-/* MENSAGENS */
-#mensagem {
-  margin-top: 15px;
-  padding: 15px;
-  border-radius: 8px;
-  text-align: center;
-  font-size: 14px;
-}
-
-.sucesso { 
-  background-color: rgba(40, 167, 69, 0.2); 
-  color: #2ecc71; 
-  border: 1px solid rgba(40, 167, 69, 0.4);
-}
-
-.erro { 
-  background-color: rgba(220, 53, 69, 0.2); 
-  color: #ff6b6b; 
-  border: 1px solid rgba(220, 53, 69, 0.4);
-}
-
-.hidden { 
-  display: none !important; 
-}
-
-/* PAINEL ADMIN */
+/* PAINEL ADMIN E CARDS */
 .agendamento-card {
   border: 1px solid #333342;
   border-left: 4px solid #f1c40f;
@@ -208,54 +201,9 @@ input:focus, select:focus {
   background-color: #16161c;
 }
 
-.agendamento-info {
-  margin-bottom: 10px;
-  color: #e0e0e0;
-  font-size: 15px;
-}
-
 .agendamento-info strong {
   font-size: 16px;
   color: #f1c40f;
-}
-
-.agendamento-info small {
-  color: #aaa;
-  font-size: 13px;
-}
-
-.btn-desmarcar {
-  width: 100%;
-  padding: 10px;
-  background-color: rgba(220, 53, 69, 0.2);
-  color: #ff6b6b;
-  border: 1px solid rgba(220, 53, 69, 0.4);
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.btn-desmarcar:hover {
-  background-color: #dc3545;
-  color: white;
-}
-
-.agendamento-card.cancelado {
-  background-color: rgba(220, 53, 69, 0.08);
-  border: 1px solid rgba(220, 53, 69, 0.3);
-  border-left-color: #dc3545;
-}
-
-/* MODAIS - TOM HARMONIZADO (#16161c) */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(5px);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 9999;
 }
 
 .modal-card {
@@ -265,45 +213,4 @@ input:focus, select:focus {
   border-radius: 12px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-}
-
-.topo-admin {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #333342;
-}
-
-.botoes-topo {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-add-user {
-  background: linear-gradient(135deg, #f1c40f 0%, #b88e28 100%);
-  color: #121216;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 13px;
-}
-
-.btn-sair {
-  background-color: #333342;
-  color: #eee;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 13px;
-}
-
-.btn-sair:hover {
-  background-color: #444456;
 }
