@@ -1,6 +1,5 @@
 const API_URL = 'https://sistema-agendamento-8tlb.onrender.com';
 
-// Preenche a data de hoje nos inputs ao abrir
 function setHoje() {
   const hoje = new Date();
   const ano = hoje.getFullYear();
@@ -17,16 +16,17 @@ function setHoje() {
   if (manualData && !manualData.value) manualData.value = dataFormatada;
 }
 
-// Busca e renderiza os agendamentos na tela
 async function carregarAgendamentos() {
   setHoje();
   const filtroData = document.getElementById('filtroData');
   const listaAgendamentos = document.getElementById('listaAgendamentos');
+  const listaCancelados = document.getElementById('listaCancelados');
   
   if (!filtroData || !listaAgendamentos) return;
   const dataSelecionada = filtroData.value;
 
   listaAgendamentos.innerHTML = '<p>Carregando agendamentos...</p>';
+  if (listaCancelados) listaCancelados.innerHTML = '<p>Carregando cancelados...</p>';
 
   try {
     const res = await fetch(`${API_URL}/agendamentos/ocupados?data=${dataSelecionada}`);
@@ -36,30 +36,57 @@ async function carregarAgendamentos() {
 
     if (!Array.isArray(agendamentos) || agendamentos.length === 0) {
       listaAgendamentos.innerHTML = '<p>Nenhum agendamento ou bloqueio nesta data.</p>';
+      if (listaCancelados) listaCancelados.innerHTML = '<p>Nenhum horário desmarcado nesta data.</p>';
       return;
     }
 
-    listaAgendamentos.innerHTML = agendamentos.map(item => {
-      const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        timeZone: 'UTC' 
-      });
-      const eBloqueio = item.cliente === 'BLOQUEADO';
-      
-      // Converte o objeto item para texto para enviar com segurança à função
-      const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
+    const ativos = agendamentos.filter(item => item.status !== 'CANCELADO');
+    const cancelados = agendamentos.filter(item => item.status === 'CANCELADO');
 
-      return `
-        <div style="padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: ${eBloqueio ? '#ffe6e6' : '#e6f7ff'};">
-          <strong>${hora}</strong> - ${item.cliente} (${item.servico})
-          ${item.telefoneCliente && item.telefoneCliente !== 'N/A' ? `<br><small>📱 ${item.telefoneCliente}</small>` : ''}
-          <div style="margin-top: 8px;">
-            <button type="button" onclick="desmarcarAgendamento('${itemJson}')" class="btn btn-red" style="padding: 4px 8px; font-size: 12px; cursor: pointer;">❌ Desmarcar / Cancelar</button>
+    // Agendamentos Ativos
+    if (ativos.length === 0) {
+      listaAgendamentos.innerHTML = '<p>Nenhum agendamento ativo nesta data.</p>';
+    } else {
+      listaAgendamentos.innerHTML = ativos.map(item => {
+        const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          timeZone: 'UTC' 
+        });
+        const eBloqueio = item.cliente === 'BLOQUEADO';
+        
+        return `
+          <div style="padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: ${eBloqueio ? '#ffe6e6' : '#e6f7ff'};">
+            <strong>${hora}</strong> - ${item.cliente} (${item.servico})
+            ${item.telefoneCliente && item.telefoneCliente !== 'N/A' ? `<br><small>📱 ${item.telefoneCliente}</small>` : ''}
+            <div style="margin-top: 8px;">
+              <button type="button" onclick="desmarcarAgendamento('${item._id || item.id}', '${item.inicio}', '${item.cliente}')" class="btn btn-red" style="padding: 4px 8px; font-size: 12px; cursor: pointer;">❌ Desmarcar / Cancelar</button>
+            </div>
           </div>
-        </div>
-      `;
-    }).join('');
+        `;
+      }).join('');
+    }
+
+    // Cancelados / Desmarcados
+    if (listaCancelados) {
+      if (cancelados.length === 0) {
+        listaCancelados.innerHTML = '<p>Nenhum horário desmarcado nesta data.</p>';
+      } else {
+        listaCancelados.innerHTML = cancelados.map(item => {
+          const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            timeZone: 'UTC' 
+          });
+          return `
+            <div style="padding: 10px; margin-bottom: 8px; border: 1px solid #ffcccc; border-radius: 6px; background-color: #fff0f0;">
+              <strong>${hora}</strong> - ${item.cliente} (${item.servico})
+              <br><small style="color: #c9302c;"><strong>Motivo do Cancelamento:</strong> ${item.motivoCancelamento || 'Não informado'}</small>
+            </div>
+          `;
+        }).join('');
+      }
+    }
 
   } catch (err) {
     console.error(err);
@@ -67,16 +94,7 @@ async function carregarAgendamentos() {
   }
 }
 
-// Desmarcar / Cancelar Agendamento
-async function desmarcarAgendamento(itemRaw) {
-  let item = {};
-  try {
-    item = typeof itemRaw === 'string' ? JSON.parse(itemRaw) : itemRaw;
-  } catch (e) {
-    item = {};
-  }
-
-  const nomeCliente = item.cliente || 'o cliente';
+async function desmarcarAgendamento(id, inicio, nomeCliente) {
   const motivo = prompt(`Qual o motivo do cancelamento para ${nomeCliente}?`);
   
   if (motivo === null) return;
@@ -85,46 +103,19 @@ async function desmarcarAgendamento(itemRaw) {
     return;
   }
 
-  const payload = {
-    id: item.id || item._id,
-    inicio: item.inicio,
-    dataHora: item.inicio,
-    cliente: item.cliente,
-    motivo: motivo
-  };
-
   try {
-    // Tentativa 1: Endpoint POST /cancelar
-    let res = await fetch(`${API_URL}/cancelar`, {
+    const res = await fetch(`${API_URL}/cancelar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ id, inicio, motivo })
     });
-
-    // Tentativa 2: Se falhar ou não existir, tenta POST /desmarcar
-    if (!res.ok) {
-      res = await fetch(`${API_URL}/desmarcar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-    }
-
-    // Tentativa 3: Se falhar, tenta DELETE em /agendamentos/:id
-    if (!res.ok && payload.id) {
-      res = await fetch(`${API_URL}/agendamentos/${payload.id}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-    }
 
     if (res.ok) {
       alert('✅ Horário desmarcado com sucesso!');
       carregarAgendamentos();
     } else {
       const result = await res.json().catch(() => ({}));
-      alert(`⚠️ ${result.error || result.message || 'Não foi possível desmarcar este horário.'}`);
+      alert(`⚠️ ${result.error || 'Não foi possível desmarcar este horário.'}`);
     }
   } catch (err) {
     console.error(err);
@@ -132,7 +123,6 @@ async function desmarcarAgendamento(itemRaw) {
   }
 }
 
-// Bloqueio de Horário
 async function bloquearHorario() {
   const dataBloqueio = document.getElementById('dataBloqueio');
   const horaInicioBloqueio = document.getElementById('horaInicioBloqueio');
@@ -171,7 +161,6 @@ async function bloquearHorario() {
   }
 }
 
-// Agendamento Manual
 async function agendarManual() {
   const cliente = document.getElementById('manualCliente')?.value.trim();
   const telefone = document.getElementById('manualTelefone')?.value.trim();
@@ -214,7 +203,6 @@ async function agendarManual() {
   }
 }
 
-// Escuta a alteração do filtro de data
 document.addEventListener('DOMContentLoaded', () => {
   const filtroData = document.getElementById('filtroData');
   if (filtroData) {
