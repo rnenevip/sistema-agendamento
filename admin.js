@@ -55,6 +55,7 @@ function fazerLogout() {
   exibirLogin();
 }
 
+/* --- MODAL CADASTRO --- */
 function abrirModalCadastro() {
   document.getElementById('modalCadastro').classList.remove('hidden');
 }
@@ -89,6 +90,54 @@ async function cadastrarNovoUsuario(event) {
     }
   } catch (err) {
     alert('❌ Erro de conexão.');
+  }
+}
+
+/* --- MODAL BLOQUEIO --- */
+function abrirModalBloqueio() {
+  document.getElementById('modalBloqueio').classList.remove('hidden');
+  const filtroData = document.getElementById('filtroData');
+  if (filtroData && filtroData.value) {
+    document.getElementById('bloqueioData').value = filtroData.value;
+  }
+}
+
+function fecharModalBloqueio() {
+  document.getElementById('modalBloqueio').classList.add('hidden');
+  document.getElementById('bloqueioMotivo').value = '';
+}
+
+async function bloquearHorario(event) {
+  event.preventDefault();
+  const data = document.getElementById('bloqueioData').value;
+  const hora = document.getElementById('bloqueioHora').value;
+  const motivo = document.getElementById('bloqueioMotivo').value.trim();
+
+  if (!data || !hora) {
+    alert('Selecione data e horário.');
+    return;
+  }
+
+  const dataHoraStr = `${data}T${hora}:00.000Z`;
+
+  try {
+    const res = await fetch(`${API_URL}/bloquear`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dataHora: dataHoraStr, motivo })
+    });
+
+    const dataRes = await res.json();
+
+    if (res.ok) {
+      alert('✅ Horário bloqueado com sucesso!');
+      fecharModalBloqueio();
+      carregarAgendamentos();
+    } else {
+      alert(`⚠️ ${dataRes.error || 'Erro ao bloquear horário.'}`);
+    }
+  } catch (err) {
+    alert('❌ Erro de conexão com o servidor.');
   }
 }
 
@@ -129,14 +178,16 @@ async function carregarAgendamentos() {
 
     listaAgendamentos.innerHTML = ativos.length === 0 ? '<p style="margin-top:10px;">Nenhum agendamento ativo.</p>' : ativos.map(item => {
       const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+      const isBloqueio = item.cliente === 'BLOQUEADO';
+
       return `
-        <div class="agendamento-card">
+        <div class="agendamento-card" style="${isBloqueio ? 'border-left: 4px solid #dc3545;' : ''}">
           <div class="agendamento-info">
-            <strong>${hora}</strong> - ${item.cliente} (${item.servico})
-            ${item.telefoneCliente ? `<br><small>📱 ${item.telefoneCliente}</small>` : ''}
+            <strong>${hora}</strong> - ${item.cliente} ${isBloqueio ? `(${item.servico})` : `(${item.servico})`}
+            ${item.telefoneCliente && !isBloqueio ? `<br><small>📱 ${item.telefoneCliente}</small>` : ''}
           </div>
           <button type="button" onclick="desmarcarAgendamento('${item._id}', '${item.inicio}', '${item.cliente}')" class="btn-desmarcar">
-            ✖ Desmarcar / Cancelar
+            ✖ ${isBloqueio ? 'Desbloquear / Remover' : 'Desmarcar / Cancelar'}
           </button>
         </div>
       `;
@@ -162,7 +213,7 @@ async function carregarAgendamentos() {
 }
 
 async function desmarcarAgendamento(id, inicio, nomeCliente) {
-  const motivo = prompt(`Motivo do cancelamento para ${nomeCliente}?`);
+  const motivo = prompt(`Motivo do cancelamento/desbloqueio para ${nomeCliente}?`);
   if (!motivo) return;
 
   try {
