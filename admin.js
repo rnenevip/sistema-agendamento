@@ -119,24 +119,23 @@ async function carregarAgendamentos() {
     const agendamentos = await res.json();
 
     if (!Array.isArray(agendamentos) || agendamentos.length === 0) {
-      listaAgendamentos.innerHTML = '<p>Nenhum agendamento nesta data.</p>';
-      if (listaCancelados) listaCancelados.innerHTML = '<p>Nenhum horário desmarcado.</p>';
+      listaAgendamentos.innerHTML = '<p style="margin-top:10px;">Nenhum agendamento nesta data.</p>';
+      if (listaCancelados) listaCancelados.innerHTML = '<p style="margin-top:10px;">Nenhum horário desmarcado.</p>';
       return;
     }
 
     const ativos = agendamentos.filter(item => item.status !== 'CANCELADO');
     const cancelados = agendamentos.filter(item => item.status === 'CANCELADO');
 
-    // Estrutura EXATA do seu layout original para usar o style.css
-    listaAgendamentos.innerHTML = ativos.length === 0 ? '<p>Nenhum agendamento ativo.</p>' : ativos.map(item => {
+    listaAgendamentos.innerHTML = ativos.length === 0 ? '<p style="margin-top:10px;">Nenhum agendamento ativo.</p>' : ativos.map(item => {
       const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
       return `
         <div class="agendamento-card">
           <div class="agendamento-info">
             <strong>${hora}</strong> - ${item.cliente} (${item.servico})
-            ${item.telefoneCliente ? `<br><span class="icone-tel">📱</span> ${item.telefoneCliente}` : ''}
+            ${item.telefoneCliente ? `<br><small>📱 ${item.telefoneCliente}</small>` : ''}
           </div>
-          <button type="button" onclick="desmarcarAgendamento('${item._id}', '${item.inicio}', '${item.cliente}')" class="btn-cancelar">
+          <button type="button" onclick="desmarcarAgendamento('${item._id}', '${item.inicio}', '${item.cliente}')" class="btn-desmarcar">
             ✖ Desmarcar / Cancelar
           </button>
         </div>
@@ -144,13 +143,13 @@ async function carregarAgendamentos() {
     }).join('');
 
     if (listaCancelados) {
-      listaCancelados.innerHTML = cancelados.length === 0 ? '<p>Nenhum horário desmarcado.</p>' : cancelados.map(item => {
+      listaCancelados.innerHTML = cancelados.length === 0 ? '<p style="margin-top:10px;">Nenhum horário desmarcado.</p>' : cancelados.map(item => {
         const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
         return `
-          <div class="agendamento-card cancelado" style="border-left: 4px solid #dc3545; background-color: #fff0f0;">
+          <div class="agendamento-card cancelado">
             <div class="agendamento-info">
               <strong>${hora}</strong> - ${item.cliente} (${item.servico})
-              <br><small style="color: #c9302c;">Motivo: ${item.motivoCancelamento || 'Não informado'}</small>
+              <br><small style="color: #a93226;">Motivo: ${item.motivoCancelamento || 'Não informado'}</small>
             </div>
           </div>
         `;
@@ -158,7 +157,7 @@ async function carregarAgendamentos() {
     }
 
   } catch (err) {
-    listaAgendamentos.innerHTML = '<p style="color:red;">Erro ao carregar agendamentos.</p>';
+    listaAgendamentos.innerHTML = '<p style="color:red; margin-top:10px;">Erro ao carregar agendamentos.</p>';
   }
 }
 

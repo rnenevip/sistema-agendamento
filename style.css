@@ -20,7 +20,7 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 450px;
+  max-width: 500px;
 }
 
 h2 {
@@ -132,14 +132,109 @@ input:focus, select:focus {
 }
 
 .hidden { 
-  display: none; 
+  display: none !important; 
 }
 
-/* Estilo para botões ocupados/indisponíveis */
 .btn-horario.indisponivel {
   background-color: #f8d7da !important;
   color: #721c24 !important;
   border-color: #f5c6cb !important;
   cursor: not-allowed !important;
   opacity: 0.8;
+}
+
+/* --- ESTILOS DO PAINEL ADMIN (CARDS E BOTÕES) --- */
+.agendamento-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 12px;
+  background-color: #fff;
+}
+
+.agendamento-info {
+  margin-bottom: 10px;
+  color: #333;
+  font-size: 15px;
+}
+
+.agendamento-info strong {
+  font-size: 16px;
+}
+
+.agendamento-info small {
+  color: #666;
+  font-size: 13px;
+}
+
+.btn-desmarcar {
+  width: 100%;
+  padding: 10px;
+  background-color: #a93226;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.btn-desmarcar:hover {
+  background-color: #922b21;
+}
+
+.agendamento-card.cancelado {
+  background-color: #fdf2f2;
+  border: 1px solid #f5c6cb;
+}
+
+/* Modal e Botões do Topo */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+
+.modal-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 350px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.topo-admin {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.botoes-topo {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-add-user {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-sair {
+  background-color: #6c757d;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
 }
