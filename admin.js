@@ -88,7 +88,7 @@ async function cadastrarNovoUsuario(event) {
       alert(`⚠️ ${data.error || 'Erro ao cadastrar.'}`);
     }
   } catch (err) {
-    alert('❌ Erro ao conectar com o servidor.');
+    alert('❌ Erro de conexão.');
   }
 }
 
@@ -112,7 +112,7 @@ async function carregarAgendamentos() {
   if (!filtroData || !listaAgendamentos) return;
   const dataSelecionada = filtroData.value;
 
-  listaAgendamentos.innerHTML = '<p>Carregando agendamentos...</p>';
+  listaAgendamentos.innerHTML = '<p>Carregando...</p>';
 
   try {
     const res = await fetch(`${API_URL}/agendamentos/ocupados?data=${dataSelecionada}`);
@@ -127,16 +127,16 @@ async function carregarAgendamentos() {
     const ativos = agendamentos.filter(item => item.status !== 'CANCELADO');
     const cancelados = agendamentos.filter(item => item.status === 'CANCELADO');
 
-    // Mantém o HTML idêntico ao layout original dos seus cards
+    // Estrutura EXATA do seu layout original para usar o style.css
     listaAgendamentos.innerHTML = ativos.length === 0 ? '<p>Nenhum agendamento ativo.</p>' : ativos.map(item => {
       const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
       return `
-        <div class="card card-agendamento">
+        <div class="agendamento-card">
           <div class="agendamento-info">
             <strong>${hora}</strong> - ${item.cliente} (${item.servico})
-            ${item.telefoneCliente ? `<br><small>📱 ${item.telefoneCliente}</small>` : ''}
+            ${item.telefoneCliente ? `<br><span class="icone-tel">📱</span> ${item.telefoneCliente}` : ''}
           </div>
-          <button type="button" onclick="desmarcarAgendamento('${item._id}', '${item.inicio}', '${item.cliente}')" class="btn btn-danger">
+          <button type="button" onclick="desmarcarAgendamento('${item._id}', '${item.inicio}', '${item.cliente}')" class="btn-cancelar">
             ✖ Desmarcar / Cancelar
           </button>
         </div>
@@ -147,10 +147,10 @@ async function carregarAgendamentos() {
       listaCancelados.innerHTML = cancelados.length === 0 ? '<p>Nenhum horário desmarcado.</p>' : cancelados.map(item => {
         const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
         return `
-          <div class="card card-agendamento cancelado" style="border-left: 4px solid #dc3545; background-color: #fff5f5;">
+          <div class="agendamento-card cancelado" style="border-left: 4px solid #dc3545; background-color: #fff0f0;">
             <div class="agendamento-info">
               <strong>${hora}</strong> - ${item.cliente} (${item.servico})
-              <br><small style="color: #dc3545;">Motivo: ${item.motivoCancelamento || 'Não informado'}</small>
+              <br><small style="color: #c9302c;">Motivo: ${item.motivoCancelamento || 'Não informado'}</small>
             </div>
           </div>
         `;
@@ -158,7 +158,7 @@ async function carregarAgendamentos() {
     }
 
   } catch (err) {
-    listaAgendamentos.innerHTML = '<p style="color:red;">Erro ao carregar dados do servidor.</p>';
+    listaAgendamentos.innerHTML = '<p style="color:red;">Erro ao carregar agendamentos.</p>';
   }
 }
 
@@ -176,9 +176,9 @@ async function desmarcarAgendamento(id, inicio, nomeCliente) {
     if (res.ok) {
       carregarAgendamentos();
     } else {
-      alert('⚠️ Não foi possível desmarcar este horário.');
+      alert('⚠️ Não foi possível desmarcar.');
     }
   } catch (err) {
-    alert('❌ Erro de conexão ao tentar desmarcar.');
+    alert('❌ Erro de conexão.');
   }
 }

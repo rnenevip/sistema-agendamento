@@ -6,40 +6,56 @@
   <title>Painel Administrativo</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Estilos do Modal e Login mantendo a paleta original */
+    /* Apenas o estilo para ocultar telas e o modal simples */
+    .hidden { display: none !important; }
+    
     .modal-overlay {
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
     }
+    
     .modal-card {
       background: #fff;
-      padding: 24px;
+      padding: 20px;
       border-radius: 8px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      width: 90%;
+      max-width: 350px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
-    .hidden { display: none !important; }
-    .header-actions {
+
+    .topo-admin {
       display: flex;
-      gap: 10px;
+      justify-content: space-between;
       align-items: center;
+      margin-bottom: 20px;
     }
-    .btn-secondary {
-      background-color: #6c757d !important;
+
+    .botoes-topo {
+      display: flex;
+      gap: 8px;
     }
-    .btn-primary-blue {
-      background-color: #0d6efd !important;
-      color: #fff !important;
+
+    .btn-add-user {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
     }
-    .card-login {
-      max-width: 400px;
-      margin: 60px auto;
+
+    .btn-sair {
+      background-color: #6c757d;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -47,35 +63,33 @@
 
   <!-- TELA DE LOGIN -->
   <div id="telaLogin" class="container">
-    <div class="card card-login">
-      <h2 style="margin-bottom: 20px; text-align: center;">🔐 Acesso ao Sistema</h2>
-      <form onsubmit="fazerLogin(event)">
-        <div class="form-group">
-          <label>Usuário:</label>
-          <input type="text" id="loginUsuario" required class="form-control">
-        </div>
-        <div class="form-group" style="margin-top: 15px;">
-          <label>Senha:</label>
-          <input type="password" id="loginSenha" required class="form-control">
-        </div>
-        <button type="submit" class="btn btn-primary" style="margin-top: 20px; width: 100%;">Entrar</button>
-      </form>
-    </div>
+    <h2>🔐 Acesso ao Sistema</h2>
+    <form onsubmit="fazerLogin(event)">
+      <div style="margin-bottom: 12px;">
+        <label style="display:block; margin-bottom: 4px;">Usuário:</label>
+        <input type="text" id="loginUsuario" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label style="display:block; margin-bottom: 4px;">Senha:</label>
+        <input type="password" id="loginSenha" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+      </div>
+      <button type="submit" class="btn-cancelar" style="background-color: #28a745; width: 100%;">Entrar</button>
+    </form>
   </div>
 
   <!-- TELA PRINCIPAL ADMIN -->
   <div id="telaAdmin" class="container hidden">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <h1 class="page-title" style="margin: 0;">Painel Administrativo</h1>
-      <div class="header-actions">
-        <button type="button" onclick="abrirModalCadastro()" class="btn btn-primary-blue">+ Add Usuário</button>
-        <button type="button" onclick="fazerLogout()" class="btn btn-secondary">Sair</button>
+    <div class="topo-admin">
+      <h1 style="margin: 0;">Painel</h1>
+      <div class="botoes-topo">
+        <button type="button" onclick="abrirModalCadastro()" class="btn-add-user">+ Add Usuário</button>
+        <button type="button" onclick="fazerLogout()" class="btn-sair">Sair</button>
       </div>
     </div>
 
-    <div class="card" style="margin-bottom: 20px;">
-      <label for="filtroData"><strong>Selecione a Data de Consulta:</strong></label>
-      <input type="date" id="filtroData" class="form-control" style="margin-top: 8px;">
+    <div style="margin-bottom: 20px;">
+      <label><strong>Selecione a Data de Consulta:</strong></label>
+      <input type="date" id="filtroData" style="width: 100%; padding: 8px; margin-top: 6px; box-sizing: border-box;">
     </div>
 
     <h2>Agendamentos do Dia</h2>
@@ -85,26 +99,26 @@
     <div id="listaCancelados"></div>
   </div>
 
-  <!-- MODAL PARA CADASTRAR NOVO USUÁRIO -->
+  <!-- MODAL DE CADASTRO -->
   <div id="modalCadastro" class="modal-overlay hidden">
     <div class="modal-card">
-      <h3 style="margin-top: 0; margin-bottom: 15px;">👤 Cadastrar Novo Usuário</h3>
+      <h3 style="margin-top:0;">👤 Cadastrar Novo Usuário</h3>
       <form onsubmit="cadastrarNovoUsuario(event)">
-        <div class="form-group">
+        <div style="margin-bottom: 10px;">
           <label>Nome Completo:</label>
-          <input type="text" id="novoNome" required class="form-control">
+          <input type="text" id="novoNome" required style="width: 100%; padding: 8px; box-sizing: border-box;">
         </div>
-        <div class="form-group" style="margin-top: 10px;">
+        <div style="margin-bottom: 10px;">
           <label>Usuário (Login):</label>
-          <input type="text" id="novoUsuario" required class="form-control">
+          <input type="text" id="novoUsuario" required style="width: 100%; padding: 8px; box-sizing: border-box;">
         </div>
-        <div class="form-group" style="margin-top: 10px;">
+        <div style="margin-bottom: 15px;">
           <label>Senha:</label>
-          <input type="password" id="novaSenha" required class="form-control">
+          <input type="password" id="novaSenha" required style="width: 100%; padding: 8px; box-sizing: border-box;">
         </div>
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar</button>
-          <button type="button" onclick="fecharModalCadastro()" class="btn btn-secondary" style="flex: 1;">Cancelar</button>
+        <div style="display:flex; gap: 8px;">
+          <button type="submit" class="btn-add-user" style="flex:1;">Salvar</button>
+          <button type="button" onclick="fecharModalCadastro()" class="btn-sair" style="flex:1;">Cancelar</button>
         </div>
       </form>
     </div>
