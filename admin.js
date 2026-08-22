@@ -1,153 +1,99 @@
 const API_URL = 'https://sistema-agendamento-8tlb.onrender.com';
 
-// Preenche a data de hoje nos inputs ao abrir
-function setHoje() {
-  const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-  const dia = String(hoje.getDate()).padStart(2, '0');
-  const dataFormatada = `${ano}-${mes}-${dia}`;
-  
-  const filtroData = document.getElementById('filtroData');
-  const dataBloqueio = document.getElementById('dataBloqueio');
-  const manualData = document.getElementById('manualData');
+const filtroData = document.getElementById('filtroData');
+const listaAgendamentos = document.getElementById('listaAgendamentos');
+const listaCancelados = document.getElementById('listaCancelados');
 
-  if (filtroData && !filtroData.value) filtroData.value = dataFormatada;
-  if (dataBloqueio && !dataBloqueio.value) dataBloqueio.value = dataFormatada;
-  if (manualData && !manualData.value) manualData.value = dataFormatada;
+// Define a data atual como padrão
+const hoje = new Date().toISOString().split('T')[0];
+if (filtroData) {
+  filtroData.value = hoje;
+  filtroData.addEventListener('change', carregarAgendamentos);
 }
 
-// Busca e renderiza os agendamentos na tela
+document.addEventListener('DOMContentLoaded', carregarAgendamentos);
+
 async function carregarAgendamentos() {
-  setHoje();
-  const filtroData = document.getElementById('filtroData');
-  const listaAgendamentos = document.getElementById('listaAgendamentos');
-  
-  if (!filtroData || !listaAgendamentos) return;
-  const dataSelecionada = filtroData.value;
+  const data = filtroData.value;
+  if (!data) return;
 
   listaAgendamentos.innerHTML = '<p>Carregando agendamentos...</p>';
+  if (listaCancelados) listaCancelados.innerHTML = '<p>Carregando cancelados...</p>';
 
   try {
-    const res = await fetch(`${API_URL}/agendamentos/ocupados?data=${dataSelecionada}`);
-    if (!res.ok) throw new Error('Erro na requisição');
-    
+    const res = await fetch(`${API_URL}/agendamentos?data=${data}`);
+    if (!res.ok) throw new Error('Erro ao buscar agendamentos');
+
     const agendamentos = await res.json();
 
-    if (!Array.isArray(agendamentos) || agendamentos.length === 0) {
-      listaAgendamentos.innerHTML = '<p>Nenhum agendamento ou bloqueio nesta data.</p>';
-      return;
-    }
+    const ativos = agendamentos.filter(a => a.status !== 'CANCELADO');
+    const cancelados = agendamentos.filter(a => a.status === 'CANCELADO');
 
-    listaAgendamentos.innerHTML = agendamentos.map(item => {
-      const hora = new Date(item.inicio).toLocaleTimeString('pt-BR', { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        timeZone: 'UTC' 
-      });
-      const eBloqueio = item.cliente === 'BLOQUEADO';
-      
-      return `
-        <div style="padding: 10px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; background-color: ${eBloqueio ? '#ffe6e6' : '#e6f7ff'};">
-          <strong>${hora}</strong> - ${item.cliente} (${item.servico})
-          ${item.telefoneCliente && item.telefoneCliente !== 'N/A' ? `<br><small>📱 ${item.telefoneCliente}</small>` : ''}
+    // 1. Renderiza os Agendamentos Ativos
+    if (ativos.length === 0) {
+      listaAgendamentos.innerHTML = '<p>Nenhum agendamento ativo para este dia.</p>';
+    } else {
+      listaAgendamentos.innerHTML = ativos.map(item => `
+        <div class="card-agendamento">
+          <p><strong>Cliente:</strong> ${item.cliente}</p>
+          <p><strong>Serviço:</strong> ${item.servico}</p>
+          <p><strong>Horário:</strong> ${item.inicio} - ${item.fim}</p>
+          <p><strong>Telefone:</strong> ${item.telefone}</p>
+          ${item.observacao ? `<p><strong>Obs:</strong> ${item.observacao}</p>` : ''}
+          <button onclick="desmarcarAgendamento('${item.id}')" class="btn btn-red" style="margin-top:10px;">❌ Desmarcar Horário</button>
         </div>
-      `;
-    }).join('');
+      `).join('');
+    }
+
+    // 2. Renderiza os Agendamentos Cancelados
+    if (listaCancelados) {
+      if (cancelados.length === 0) {
+        listaCancelados.innerHTML = '<p>Nenhum horário desmarcado nesta data.</p>';
+      } else {
+        listaCancelados.innerHTML = cancelados.map(item => `
+          <div class="card-agendamento cancelado" style="background:#fff0f0; border-left:4px solid #d9534f; padding:10px; margin-bottom:10px;">
+            <p><strong>Cliente:</strong> ${item.cliente}</p>
+            <p><strong>Serviço:</strong> ${item.servico}</p>
+            <p><strong>Horário Liberado:</strong> ${item.inicio} - ${item.fim}</p>
+            <p style="color: #c9302c;"><strong>Motivo do Cancelamento:</strong> ${item.motivoCancelamento || 'Não informado'}</p>
+          </div>
+        `).join('');
+      }
+    }
 
   } catch (err) {
     console.error(err);
-    listaAgendamentos.innerHTML = '<p style="color:red; font-weight:bold;">Erro ao carregar dados do servidor.</p>';
+    listaAgendamentos.innerHTML = '<p style="color:red;">Erro ao carregar dados do servidor.</p>';
   }
 }
 
-// Bloqueio de Horário
-async function bloquearHorario() {
-  const dataBloqueio = document.getElementById('dataBloqueio');
-  const horaInicioBloqueio = document.getElementById('horaInicioBloqueio');
+// Função para Desmarcar/Cancelar com Motivo
+async function desmarcarAgendamento(id) {
+  const motivo = prompt("Por qual motivo este horário está sendo desmarcado?");
+  
+  if (motivo === null) return; // Cancelou a digitação
 
-  const data = dataBloqueio ? dataBloqueio.value : '';
-  const hora = horaInicioBloqueio ? horaInicioBloqueio.value : '08:00';
-
-  if (!data) {
-    alert('Selecione uma data para realizar o bloqueio.');
+  if (!motivo.trim()) {
+    alert("Por favor, informe o motivo do cancelamento.");
     return;
   }
 
-  const dataHoraISO = `${data}T${hora}:00.000Z`;
-
   try {
-    const res = await fetch(`${API_URL}/bloquear`, {
-      method: 'POST',
+    const res = await fetch(`${API_URL}/agendamentos/${id}/cancelar`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        dataHora: dataHoraISO,
-        motivo: 'Pausa/Bloqueio'
-      })
+      body: JSON.stringify({ motivoCancelamento: motivo })
     });
 
-    const result = await res.json();
-
     if (res.ok) {
-      alert('✅ Horário bloqueado com sucesso!');
+      alert("Horário desmarcado com sucesso! O horário já está liberado para novos agendamentos.");
       carregarAgendamentos();
     } else {
-      alert(`⚠️ ${result.error || 'Não foi possível bloquear este horário.'}`);
+      const errData = await res.json();
+      alert(`Erro ao desmarcar: ${errData.message || 'Tente novamente.'}`);
     }
-  } catch (err) {
-    console.error(err);
-    alert('❌ Erro de conexão com o servidor.');
+  } catch (error) {
+    console.error(error);
+    alert("Erro de conexão ao tentar desmarcar.");
   }
 }
-
-// Agendamento Manual
-async function agendarManual() {
-  const cliente = document.getElementById('manualCliente')?.value.trim();
-  const telefone = document.getElementById('manualTelefone')?.value.trim();
-  const servico = document.getElementById('manualServico')?.value;
-  const data = document.getElementById('manualData')?.value;
-  const hora = document.getElementById('manualHoraInicio')?.value;
-
-  if (!cliente || !data) {
-    alert('Preencha o nome do cliente e a data.');
-    return;
-  }
-
-  const dataHoraISO = `${data}T${hora}:00.000Z`;
-
-  try {
-    const res = await fetch(`${API_URL}/agendar`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cliente,
-        telefone: telefone || 'Não informado',
-        servico,
-        dataHora: dataHoraISO
-      })
-    });
-
-    const result = await res.json();
-
-    if (res.ok) {
-      alert('✅ Agendamento realizado com sucesso!');
-      document.getElementById('manualCliente').value = '';
-      document.getElementById('manualTelefone').value = '';
-      carregarAgendamentos();
-    } else {
-      alert(`⚠️ ${result.error || 'Não foi possível agendar.'}`);
-    }
-  } catch (err) {
-    console.error(err);
-    alert('❌ Erro de conexão com o servidor.');
-  }
-}
-
-// Escuta a alteração do filtro de data
-document.addEventListener('DOMContentLoaded', () => {
-  const filtroData = document.getElementById('filtroData');
-  if (filtroData) {
-    filtroData.addEventListener('change', carregarAgendamentos);
-  }
-  carregarAgendamentos();
-});
