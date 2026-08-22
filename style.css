@@ -28,7 +28,7 @@ body {
   max-width: 450px;
 }
 
-/* LOGO DOURADA VÍVIDA & INTEGRADA AO TOM DE FUNDO */
+/* LOGO DOURADA ARREDONDADA COM BORDA E BRILHO */
 .logo-container {
   margin-bottom: 15px;
   text-align: center;
@@ -39,16 +39,17 @@ body {
 }
 
 .logo-gold {
-  max-width: 160px;
-  height: auto;
-  /* Blend mode garante que qualquer quadrado de fundo da logo se funda ao tema escuro */
-  mix-blend-mode: lighten;
-  filter: brightness(1.2) contrast(1.1) saturate(1.5) drop-shadow(0 0 10px rgba(241, 196, 15, 0.5));
+  width: 130px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #f1c40f;
+  box-shadow: 0 0 15px rgba(241, 196, 15, 0.5);
   transition: transform 0.3s ease;
 }
 
 .logo-gold:hover {
-  transform: scale(1.04);
+  transform: scale(1.05);
 }
 
 .titulo-studio {
