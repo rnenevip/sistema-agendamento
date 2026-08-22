@@ -9,27 +9,30 @@
 <body>
 
   <!-- TELA DE LOGIN -->
-  <div id="telaLogin" class="container">
-    <div class="logo-header">
-      <h1>Studio VT Hair</h1>
-      <p>Acesso Restrito ao Painel</p>
+  <div id="telaLogin" class="container-login">
+    <!-- LOGO TRATADA VIA CSS (DOURO VÍVIDO) -->
+    <div class="logo-container">
+      <img src="logo.png" alt="Studio VT Hair Logo" class="logo-gold">
     </div>
 
-    <form onsubmit="fazerLogin(event)">
-      <label>Usuário:</label>
-      <input type="text" id="loginUsuario" required>
-      
-      <label>Senha:</label>
-      <input type="password" id="loginSenha" required>
-      
-      <button type="submit" id="btnConfirmar" style="margin-top: 20px;">Entrar</button>
-    </form>
+    <div class="container">
+      <h2>🔐 Acesso ao Sistema</h2>
+      <form onsubmit="fazerLogin(event)">
+        <label>Usuário:</label>
+        <input type="text" id="loginUsuario" required>
+        
+        <label>Senha:</label>
+        <input type="password" id="loginSenha" required>
+        
+        <button type="submit" id="btnConfirmar" style="margin-top: 20px;">Entrar</button>
+      </form>
+    </div>
   </div>
 
   <!-- TELA PRINCIPAL ADMIN -->
   <div id="telaAdmin" class="container hidden">
     <div class="topo-admin">
-      <h1 style="font-size: 20px; color: #e5c158;">Painel VT Hair</h1>
+      <h1 style="font-size: 20px; color: #f1c40f;">Painel VT Hair</h1>
       <div class="botoes-topo">
         <button type="button" onclick="abrirModalBloqueio()" class="btn-add-user" style="background: #dc3545; color: white;">🚫 Bloquear</button>
         <button type="button" onclick="abrirModalCadastro()" class="btn-add-user">+ Add Usuário</button>
@@ -52,7 +55,7 @@
   <!-- MODAL DE CADASTRO DE USUÁRIO -->
   <div id="modalCadastro" class="modal-overlay hidden">
     <div class="modal-card">
-      <h3 style="margin-top:0; margin-bottom: 15px; text-align: center; color: #e5c158;">👤 Cadastrar Novo Usuário</h3>
+      <h3 style="margin-top:0; margin-bottom: 15px; text-align: center; color: #f1c40f;">👤 Cadastrar Novo Usuário</h3>
       <form onsubmit="cadastrarNovoUsuario(event)">
         <label style="margin-top:0;">Nome Completo:</label>
         <input type="text" id="novoNome" required>
@@ -74,7 +77,7 @@
   <!-- MODAL DE BLOQUEIO DE HORÁRIO -->
   <div id="modalBloqueio" class="modal-overlay hidden">
     <div class="modal-card">
-      <h3 style="margin-top:0; margin-bottom: 15px; text-align: center; color: #e5c158;">🚫 Bloquear Horário</h3>
+      <h3 style="margin-top:0; margin-bottom: 15px; text-align: center; color: #f1c40f;">🚫 Bloquear Horário</h3>
       <form onsubmit="bloquearHorario(event)" style="display: flex; flex-direction: column; gap: 12px;">
         <div>
           <label style="display: block; margin-bottom: 4px; text-align: left;">Data:</label>
@@ -82,7 +85,7 @@
         </div>
 
         <div>
-          <button type="button" onclick="selecionarDiaTodo()" style="width: 100%; padding: 10px; background-color: #333342; color: #e5c158; border: 1px solid #e5c158; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold;">
+          <button type="button" onclick="selecionarDiaTodo()" style="width: 100%; padding: 10px; background-color: #333342; color: #f1c40f; border: 1px solid #f1c40f; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold;">
             📅 Selecionar Dia Todo (08:00 às 18:00)
           </button>
         </div>
