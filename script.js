@@ -46,16 +46,18 @@ async function carregarHorarios() {
       console.warn("Aguardando resposta da API no Render...");
     }
 
-    // Identificação insensível a maiúsculas/minúsculas
     const servicoLower = servico.toLowerCase();
     let duracaoNovo = 60;
 
+    // Regras de duração atualizadas conforme solicitado
     if (servicoLower.includes('mecha')) {
-      duracaoNovo = 240; // 4 horas
-    } else if (servicoLower.includes('colora')) {
-      duracaoNovo = 120; // 2 horas
+      duracaoNovo = 240; // 4h
+    } else if (servicoLower.includes('tintura')) {
+      duracaoNovo = 80;  // 1h20
+    } else if (servicoLower.includes('plastica') || servicoLower.includes('plástica')) {
+      duracaoNovo = 90;  // 1h30
     } else if (servicoLower.includes('corte') || servicoLower.includes('escova')) {
-      duracaoNovo = 45; // 45 minutos
+      duracaoNovo = 45;  // 45 min
     }
 
     gridHorarios.innerHTML = '';
@@ -63,39 +65,27 @@ async function carregarHorarios() {
     if (btnConfirmar) btnConfirmar.disabled = true;
     if (horarioSelecionadoInput) horarioSelecionadoInput.value = '';
 
+    // Mapeia todos os horários de início que já foram marcados no banco
+    const horariosInicioOcupados = Array.isArray(ocupados) 
+      ? ocupados.map(ag => {
+          if (!ag) return null;
+          const rawInicio = ag.inicio || ag.dataHora || (typeof ag === 'string' ? ag : '');
+          if (!rawInicio) return null;
+          const match = rawInicio.match(/(\d{2}):(\d{2})/);
+          return match ? `${match[1]}:${match[2]}` : null;
+        }).filter(Boolean)
+      : [];
+
     HORARIOS_DIA.forEach(hora => {
       const [h, m] = hora.split(':').map(Number);
       const inicioNovoMin = h * 60 + m;
       const fimNovoMin = inicioNovoMin + duracaoNovo;
 
-      // 1. Conflito com agendamentos existentes no banco
-      let temConflito = Array.isArray(ocupados) && ocupados.some(ag => {
-        if (!ag) return false;
+      // O horário fica indisponível se já houver um agendamento começando exatamente no mesmo horário
+      let temConflito = horariosInicioOcupados.includes(hora);
 
-        const rawInicio = ag.inicio || ag.dataHora || (typeof ag === 'string' ? ag : '');
-        if (!rawInicio) return false;
-
-        const matchInicio = rawInicio.match(/(\d{2}):(\d{2})/);
-        if (!matchInicio) return false;
-
-        const hIn = parseInt(matchInicio[1], 10);
-        const mIn = parseInt(matchInicio[2], 10);
-        const inicioAgMin = hIn * 60 + mIn;
-
-        let fimAgMin = inicioAgMin + 60;
-        const rawFim = ag.fim || ag.dataHoraFim;
-        if (rawFim) {
-          const matchFim = rawFim.match(/(\d{2}):(\d{2})/);
-          if (matchFim) {
-            fimAgMin = parseInt(matchFim[1], 10) * 60 + parseInt(matchFim[2], 10);
-          }
-        }
-
-        return (inicioNovoMin < fimAgMin) && (fimNovoMin > inicioAgMin);
-      });
-
-      // 2. Trava para não estourar o expediente final (ex: serviço de 4h iniciado às 15h ou 16h)
-      const LIMITE_EXPEDIENTE_MIN = 18 * 60; // 18:00 em minutos
+      // Trava de segurança para não ultrapassar o final do expediente (18:00)
+      const LIMITE_EXPEDIENTE_MIN = 18 * 60;
       if (fimNovoMin > LIMITE_EXPEDIENTE_MIN) {
         temConflito = true;
       }
